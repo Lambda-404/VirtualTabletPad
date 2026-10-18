@@ -1,0 +1,622 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0699D6326CDE2946B100D0DC /* GestureEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = F724A3A974832BDC7E1217F9 /* GestureEngine.swift */; };
+		0FAC50F6B73667E260251E5F /* USBProxy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EC5F32F10FBECB7931B4F37 /* USBProxy.swift */; };
+		12AF59E6866C224EF1DF38F1 /* ModifierState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29ED733A107B2C21065B4E91 /* ModifierState.swift */; };
+		1E08B46E6DE12E2B71125524 /* UDPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45B1FFBA13CF40C460D403C7 /* UDPServer.swift */; };
+		2C961CE79900459C7D893524 /* FileReceiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA3DAEA7745FDBFEB336BA66 /* FileReceiver.swift */; };
+		339E6F79B560C01ACCF9A92B /* EventInjector.swift in Sources */ = {isa = PBXBuildFile; fileRef = F44A2EFE78297924A1B14B40 /* EventInjector.swift */; };
+		36706010021AF27E43AF4A81 /* VPadProtocol in Frameworks */ = {isa = PBXBuildFile; productRef = F013512D136096C8C3CD7519 /* VPadProtocol */; };
+		3ABE6E325E8A54E4C7E36F4C /* PairingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 344B61CAC1A2EBBCE0ED73C6 /* PairingView.swift */; };
+		51FBE24AC1BFE22B80A5216F /* LinkDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 050D3541CB77806EB1BE5730 /* LinkDiscovery.swift */; };
+		56E7405431CD270F55066E03 /* HybridCanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 220E334F8914C51E81521057 /* HybridCanvasView.swift */; };
+		57148F391D19D41E5F8A3D26 /* SessionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08779CA1D485CED7333FB736 /* SessionCoordinator.swift */; };
+		584CF6EFC8B93791FDBAE7A1 /* MacHostApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7844CA9290A3D04600C96D /* MacHostApp.swift */; };
+		5E4C1DD0245FFE021B939E6E /* TransientInkLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F2CBF95A69EF52BFD85AB03 /* TransientInkLayer.swift */; };
+		5F5268BBD3459064937058C8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3F84D30D422716FCD073314A /* Assets.xcassets */; };
+		5FC51E08AD1FE60F606E13C0 /* GestureMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79E79667FDB4874B70727DA8 /* GestureMapView.swift */; };
+		6EFDD52FAE488F0C30162179 /* TouchpadSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA21D4A82CF1437D4C1E5ADA /* TouchpadSettings.swift */; };
+		7165F1EAE7390130F5F08176 /* GestureMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = F901100F85DA31ED6D05A4A6 /* GestureMapper.swift */; };
+		7DA78D01D0094CA0025CC522 /* FunctionKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD88789C9A226C86A7AD8D21 /* FunctionKeys.swift */; };
+		812D79C9FFC37A83EEDA40FF /* PairingProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = F30A3FE22F973326DB919A9E /* PairingProfile.swift */; };
+		8CFFE8D1EB623C067236D70C /* SessionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49041ABADA68D792F2C30ACF /* SessionState.swift */; };
+		8DD2AC6F138C0E3126E30AA8 /* VPadProtocol in Frameworks */ = {isa = PBXBuildFile; productRef = 9327A9C0077802CA7AE00ACB /* VPadProtocol */; };
+		9EE50BFDD7BBD4A72B2A3A02 /* WorkspaceSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F4F43A7CA219C4E67BE5F4D /* WorkspaceSettingsView.swift */; };
+		A8E72B17A1A86EA896173CEE /* WorkspaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16CB9FC20007514BD63DE90B /* WorkspaceView.swift */; };
+		B51A98FB5418E9CE3C7D3CA0 /* TouchpadSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C39F1825E992388553B6632 /* TouchpadSettingsView.swift */; };
+		BD8E87C72F239474CF3456BF /* KeyboardHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DB5443D740C86B261288C07 /* KeyboardHandler.swift */; };
+		BED28A20033938CA3CB3F3EF /* ConnectionSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B50CA2594657E98C737D855D /* ConnectionSettingsView.swift */; };
+		C32A56F1E2EDD7963829C913 /* PencilStatusMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B513FB13ED23BA741ED26333 /* PencilStatusMonitor.swift */; };
+		CA9824D1D3F4E20B16BD7DF6 /* SessionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118F4834EE944827B95FE004 /* SessionState.swift */; };
+		CAB1D451CE240D909CCD4D52 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A767D6BE5165D7D7C44E4B2D /* Assets.xcassets */; };
+		D1C01667EC9B9AE322EF9BEE /* iPadClientApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C0C6B3246B3C6801476CCE1 /* iPadClientApp.swift */; };
+		D1C90935AD234F994599EABE /* AccessibilityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A31AEE91F8C74300A6E7A0E /* AccessibilityManager.swift */; };
+		D576273DC7B5BDFE3AB9FDC1 /* LiquidGlassWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 373BD8E2893FC0BDC438D9A2 /* LiquidGlassWorkspace.swift */; };
+		D9F058FBCF93ACB87EBCAFDA /* UDPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B635C96C68DE1FBB64E212C7 /* UDPClient.swift */; };
+		E185F4C32097C22BC4877F87 /* PencilSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93ACFF63669CCA80E47C2042 /* PencilSettings.swift */; };
+		E4B63C335B2836755F72A533 /* QRScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 191077CB210DE4AC3BF840F0 /* QRScannerView.swift */; };
+		E8F873882B47FAC8C2E854C4 /* HostBeacon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D96DF6408B9397B911AF673 /* HostBeacon.swift */; };
+		FC8A528C4946FA11030B53E7 /* TCPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFD07A15CB3A70CD892818F2 /* TCPServer.swift */; };
+		FEC7B194A69B999A7F6AC30B /* TCPFileClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6EFD5E08467B0880BFD5579 /* TCPFileClient.swift */; };
+		FF2DA4FAEEBA9BD7CE745B77 /* PencilProManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B7C750622D79E069FDB3E4D /* PencilProManager.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		050D3541CB77806EB1BE5730 /* LinkDiscovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkDiscovery.swift; sourceTree = "<group>"; };
+		08779CA1D485CED7333FB736 /* SessionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionCoordinator.swift; sourceTree = "<group>"; };
+		118F4834EE944827B95FE004 /* SessionState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionState.swift; sourceTree = "<group>"; };
+		16CB9FC20007514BD63DE90B /* WorkspaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkspaceView.swift; sourceTree = "<group>"; };
+		191077CB210DE4AC3BF840F0 /* QRScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRScannerView.swift; sourceTree = "<group>"; };
+		220E334F8914C51E81521057 /* HybridCanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HybridCanvasView.swift; sourceTree = "<group>"; };
+		29ED733A107B2C21065B4E91 /* ModifierState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModifierState.swift; sourceTree = "<group>"; };
+		2D96DF6408B9397B911AF673 /* HostBeacon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostBeacon.swift; sourceTree = "<group>"; };
+		344B61CAC1A2EBBCE0ED73C6 /* PairingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingView.swift; sourceTree = "<group>"; };
+		3514EF553C7E9EA73B001649 /* MacHost.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MacHost.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		373BD8E2893FC0BDC438D9A2 /* LiquidGlassWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiquidGlassWorkspace.swift; sourceTree = "<group>"; };
+		3EC5F32F10FBECB7931B4F37 /* USBProxy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = USBProxy.swift; sourceTree = "<group>"; };
+		3F84D30D422716FCD073314A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		45B1FFBA13CF40C460D403C7 /* UDPServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UDPServer.swift; sourceTree = "<group>"; };
+		49041ABADA68D792F2C30ACF /* SessionState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionState.swift; sourceTree = "<group>"; };
+		6B7C750622D79E069FDB3E4D /* PencilProManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PencilProManager.swift; sourceTree = "<group>"; };
+		6F4F43A7CA219C4E67BE5F4D /* WorkspaceSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkspaceSettingsView.swift; sourceTree = "<group>"; };
+		79E79667FDB4874B70727DA8 /* GestureMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureMapView.swift; sourceTree = "<group>"; };
+		7C0C6B3246B3C6801476CCE1 /* iPadClientApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadClientApp.swift; sourceTree = "<group>"; };
+		7C39F1825E992388553B6632 /* TouchpadSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TouchpadSettingsView.swift; sourceTree = "<group>"; };
+		7F2CBF95A69EF52BFD85AB03 /* TransientInkLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransientInkLayer.swift; sourceTree = "<group>"; };
+		842759E6C93D64EB083495E7 /* iPadClient.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = iPadClient.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8A31AEE91F8C74300A6E7A0E /* AccessibilityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityManager.swift; sourceTree = "<group>"; };
+		93ACFF63669CCA80E47C2042 /* PencilSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PencilSettings.swift; sourceTree = "<group>"; };
+		9DB5443D740C86B261288C07 /* KeyboardHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardHandler.swift; sourceTree = "<group>"; };
+		A6EFD5E08467B0880BFD5579 /* TCPFileClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCPFileClient.swift; sourceTree = "<group>"; };
+		A767D6BE5165D7D7C44E4B2D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		AC45B4E1CC1CFBE85A0466CB /* VPadProtocol */ = {isa = PBXFileReference; lastKnownFileType = folder; name = VPadProtocol; path = Packages/VPadProtocol; sourceTree = SOURCE_ROOT; };
+		AD88789C9A226C86A7AD8D21 /* FunctionKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FunctionKeys.swift; sourceTree = "<group>"; };
+		AFD07A15CB3A70CD892818F2 /* TCPServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCPServer.swift; sourceTree = "<group>"; };
+		B50CA2594657E98C737D855D /* ConnectionSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionSettingsView.swift; sourceTree = "<group>"; };
+		B513FB13ED23BA741ED26333 /* PencilStatusMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PencilStatusMonitor.swift; sourceTree = "<group>"; };
+		B635C96C68DE1FBB64E212C7 /* UDPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UDPClient.swift; sourceTree = "<group>"; };
+		CE7844CA9290A3D04600C96D /* MacHostApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacHostApp.swift; sourceTree = "<group>"; };
+		EA21D4A82CF1437D4C1E5ADA /* TouchpadSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TouchpadSettings.swift; sourceTree = "<group>"; };
+		F30A3FE22F973326DB919A9E /* PairingProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingProfile.swift; sourceTree = "<group>"; };
+		F44A2EFE78297924A1B14B40 /* EventInjector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventInjector.swift; sourceTree = "<group>"; };
+		F724A3A974832BDC7E1217F9 /* GestureEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureEngine.swift; sourceTree = "<group>"; };
+		F901100F85DA31ED6D05A4A6 /* GestureMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureMapper.swift; sourceTree = "<group>"; };
+		FA3DAEA7745FDBFEB336BA66 /* FileReceiver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileReceiver.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		3BDEA20D43EF3367D53C18BC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				36706010021AF27E43AF4A81 /* VPadProtocol in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F43D367897E8EE3445E5AC24 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8DD2AC6F138C0E3126E30AA8 /* VPadProtocol in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1FBA60D07C1AC5ECDFC2325E /* iPadClient */ = {
+			isa = PBXGroup;
+			children = (
+				A767D6BE5165D7D7C44E4B2D /* Assets.xcassets */,
+				B50CA2594657E98C737D855D /* ConnectionSettingsView.swift */,
+				AD88789C9A226C86A7AD8D21 /* FunctionKeys.swift */,
+				F724A3A974832BDC7E1217F9 /* GestureEngine.swift */,
+				220E334F8914C51E81521057 /* HybridCanvasView.swift */,
+				7C0C6B3246B3C6801476CCE1 /* iPadClientApp.swift */,
+				9DB5443D740C86B261288C07 /* KeyboardHandler.swift */,
+				050D3541CB77806EB1BE5730 /* LinkDiscovery.swift */,
+				373BD8E2893FC0BDC438D9A2 /* LiquidGlassWorkspace.swift */,
+				29ED733A107B2C21065B4E91 /* ModifierState.swift */,
+				F30A3FE22F973326DB919A9E /* PairingProfile.swift */,
+				6B7C750622D79E069FDB3E4D /* PencilProManager.swift */,
+				93ACFF63669CCA80E47C2042 /* PencilSettings.swift */,
+				B513FB13ED23BA741ED26333 /* PencilStatusMonitor.swift */,
+				191077CB210DE4AC3BF840F0 /* QRScannerView.swift */,
+				08779CA1D485CED7333FB736 /* SessionCoordinator.swift */,
+				49041ABADA68D792F2C30ACF /* SessionState.swift */,
+				A6EFD5E08467B0880BFD5579 /* TCPFileClient.swift */,
+				EA21D4A82CF1437D4C1E5ADA /* TouchpadSettings.swift */,
+				7C39F1825E992388553B6632 /* TouchpadSettingsView.swift */,
+				7F2CBF95A69EF52BFD85AB03 /* TransientInkLayer.swift */,
+				B635C96C68DE1FBB64E212C7 /* UDPClient.swift */,
+				6F4F43A7CA219C4E67BE5F4D /* WorkspaceSettingsView.swift */,
+				16CB9FC20007514BD63DE90B /* WorkspaceView.swift */,
+			);
+			path = iPadClient;
+			sourceTree = "<group>";
+		};
+		3D26FDA83FA29E401EBEAF4E /* MacHost */ = {
+			isa = PBXGroup;
+			children = (
+				8A31AEE91F8C74300A6E7A0E /* AccessibilityManager.swift */,
+				3F84D30D422716FCD073314A /* Assets.xcassets */,
+				F44A2EFE78297924A1B14B40 /* EventInjector.swift */,
+				FA3DAEA7745FDBFEB336BA66 /* FileReceiver.swift */,
+				F901100F85DA31ED6D05A4A6 /* GestureMapper.swift */,
+				79E79667FDB4874B70727DA8 /* GestureMapView.swift */,
+				2D96DF6408B9397B911AF673 /* HostBeacon.swift */,
+				CE7844CA9290A3D04600C96D /* MacHostApp.swift */,
+				344B61CAC1A2EBBCE0ED73C6 /* PairingView.swift */,
+				118F4834EE944827B95FE004 /* SessionState.swift */,
+				AFD07A15CB3A70CD892818F2 /* TCPServer.swift */,
+				45B1FFBA13CF40C460D403C7 /* UDPServer.swift */,
+				3EC5F32F10FBECB7931B4F37 /* USBProxy.swift */,
+			);
+			path = MacHost;
+			sourceTree = "<group>";
+		};
+		446BF63E669BC2D902E486FF /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				842759E6C93D64EB083495E7 /* iPadClient.app */,
+				3514EF553C7E9EA73B001649 /* MacHost.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		803AC331C039999BFEA9DD81 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				AC45B4E1CC1CFBE85A0466CB /* VPadProtocol */,
+			);
+			path = Packages;
+			sourceTree = "<group>";
+		};
+		CA9EE110EEFADBC3F7616900 = {
+			isa = PBXGroup;
+			children = (
+				1FBA60D07C1AC5ECDFC2325E /* iPadClient */,
+				3D26FDA83FA29E401EBEAF4E /* MacHost */,
+				803AC331C039999BFEA9DD81 /* Packages */,
+				446BF63E669BC2D902E486FF /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		7124FB2925206039321D0D41 /* MacHost */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FB97CD5C3F4757C69F7866D5 /* Build configuration list for PBXNativeTarget "MacHost" */;
+			buildPhases = (
+				2B29FF7CFE9B26CF4E35D775 /* Sources */,
+				DEE69FD0DC022F47E76B4174 /* Resources */,
+				F43D367897E8EE3445E5AC24 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MacHost;
+			packageProductDependencies = (
+				9327A9C0077802CA7AE00ACB /* VPadProtocol */,
+			);
+			productName = MacHost;
+			productReference = 3514EF553C7E9EA73B001649 /* MacHost.app */;
+			productType = "com.apple.product-type.application";
+		};
+		912FADF7F632A1E586A00759 /* iPadClient */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 095D08BC70C55DD75CFA70AA /* Build configuration list for PBXNativeTarget "iPadClient" */;
+			buildPhases = (
+				1E936F36CDC7DB950E1CD68B /* Sources */,
+				536CC2E53F735CCB382AA955 /* Resources */,
+				3BDEA20D43EF3367D53C18BC /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = iPadClient;
+			packageProductDependencies = (
+				F013512D136096C8C3CD7519 /* VPadProtocol */,
+			);
+			productName = iPadClient;
+			productReference = 842759E6C93D64EB083495E7 /* iPadClient.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		F4193E0BE358C469BDA19E0B /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					7124FB2925206039321D0D41 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Manual;
+					};
+					912FADF7F632A1E586A00759 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 1BC0668CB23AD508A95FB593 /* Build configuration list for PBXProject "VirtualTabletPad" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = CA9EE110EEFADBC3F7616900;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				82827C624F9138E43EFAD17D /* XCLocalSwiftPackageReference "Packages/VPadProtocol" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 446BF63E669BC2D902E486FF /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				7124FB2925206039321D0D41 /* MacHost */,
+				912FADF7F632A1E586A00759 /* iPadClient */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		536CC2E53F735CCB382AA955 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CAB1D451CE240D909CCD4D52 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DEE69FD0DC022F47E76B4174 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5F5268BBD3459064937058C8 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		1E936F36CDC7DB950E1CD68B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BED28A20033938CA3CB3F3EF /* ConnectionSettingsView.swift in Sources */,
+				7DA78D01D0094CA0025CC522 /* FunctionKeys.swift in Sources */,
+				0699D6326CDE2946B100D0DC /* GestureEngine.swift in Sources */,
+				56E7405431CD270F55066E03 /* HybridCanvasView.swift in Sources */,
+				BD8E87C72F239474CF3456BF /* KeyboardHandler.swift in Sources */,
+				51FBE24AC1BFE22B80A5216F /* LinkDiscovery.swift in Sources */,
+				D576273DC7B5BDFE3AB9FDC1 /* LiquidGlassWorkspace.swift in Sources */,
+				12AF59E6866C224EF1DF38F1 /* ModifierState.swift in Sources */,
+				812D79C9FFC37A83EEDA40FF /* PairingProfile.swift in Sources */,
+				FF2DA4FAEEBA9BD7CE745B77 /* PencilProManager.swift in Sources */,
+				E185F4C32097C22BC4877F87 /* PencilSettings.swift in Sources */,
+				C32A56F1E2EDD7963829C913 /* PencilStatusMonitor.swift in Sources */,
+				E4B63C335B2836755F72A533 /* QRScannerView.swift in Sources */,
+				57148F391D19D41E5F8A3D26 /* SessionCoordinator.swift in Sources */,
+				8CFFE8D1EB623C067236D70C /* SessionState.swift in Sources */,
+				FEC7B194A69B999A7F6AC30B /* TCPFileClient.swift in Sources */,
+				6EFDD52FAE488F0C30162179 /* TouchpadSettings.swift in Sources */,
+				B51A98FB5418E9CE3C7D3CA0 /* TouchpadSettingsView.swift in Sources */,
+				5E4C1DD0245FFE021B939E6E /* TransientInkLayer.swift in Sources */,
+				D9F058FBCF93ACB87EBCAFDA /* UDPClient.swift in Sources */,
+				9EE50BFDD7BBD4A72B2A3A02 /* WorkspaceSettingsView.swift in Sources */,
+				A8E72B17A1A86EA896173CEE /* WorkspaceView.swift in Sources */,
+				D1C01667EC9B9AE322EF9BEE /* iPadClientApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2B29FF7CFE9B26CF4E35D775 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D1C90935AD234F994599EABE /* AccessibilityManager.swift in Sources */,
+				339E6F79B560C01ACCF9A92B /* EventInjector.swift in Sources */,
+				2C961CE79900459C7D893524 /* FileReceiver.swift in Sources */,
+				5FC51E08AD1FE60F606E13C0 /* GestureMapView.swift in Sources */,
+				7165F1EAE7390130F5F08176 /* GestureMapper.swift in Sources */,
+				E8F873882B47FAC8C2E854C4 /* HostBeacon.swift in Sources */,
+				584CF6EFC8B93791FDBAE7A1 /* MacHostApp.swift in Sources */,
+				3ABE6E325E8A54E4C7E36F4C /* PairingView.swift in Sources */,
+				CA9824D1D3F4E20B16BD7DF6 /* SessionState.swift in Sources */,
+				FC8A528C4946FA11030B53E7 /* TCPServer.swift in Sources */,
+				1E08B46E6DE12E2B71125524 /* UDPServer.swift in Sources */,
+				0FAC50F6B73667E260251E5F /* USBProxy.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		2229773C7683B5F807EB1387 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 28;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = iPadClient/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.vpad.iPadClient;
+				PRODUCT_NAME = VirtualTabletPad;
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 2;
+			};
+			name = Release;
+		};
+		2F40BD46FE66C38772933D3E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 10;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = MacHost/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.vpad.MacHost;
+				PRODUCT_NAME = VirtualTabletPad;
+				SDKROOT = macosx;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		5661213ADA05CC970D3FD441 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 28;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = iPadClient/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.vpad.iPadClient;
+				PRODUCT_NAME = VirtualTabletPad;
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 2;
+			};
+			name = Debug;
+		};
+		6B7A9257C1FD1709E9457D38 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 10;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = MacHost/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.vpad.MacHost;
+				PRODUCT_NAME = VirtualTabletPad;
+				SDKROOT = macosx;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		A193C4C0A521B30A0E09ABC5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.5.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		CFD79EE09C97405FB60C7FF4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.5.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		095D08BC70C55DD75CFA70AA /* Build configuration list for PBXNativeTarget "iPadClient" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5661213ADA05CC970D3FD441 /* Debug */,
+				2229773C7683B5F807EB1387 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		1BC0668CB23AD508A95FB593 /* Build configuration list for PBXProject "VirtualTabletPad" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CFD79EE09C97405FB60C7FF4 /* Debug */,
+				A193C4C0A521B30A0E09ABC5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		FB97CD5C3F4757C69F7866D5 /* Build configuration list for PBXNativeTarget "MacHost" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6B7A9257C1FD1709E9457D38 /* Debug */,
+				2F40BD46FE66C38772933D3E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		82827C624F9138E43EFAD17D /* XCLocalSwiftPackageReference "Packages/VPadProtocol" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/VPadProtocol;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		9327A9C0077802CA7AE00ACB /* VPadProtocol */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = VPadProtocol;
+		};
+		F013512D136096C8C3CD7519 /* VPadProtocol */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = VPadProtocol;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = F4193E0BE358C469BDA19E0B /* Project object */;
+}

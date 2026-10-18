@@ -1,0 +1,11 @@
+.DS_Store
+.build/
+build/
+.tools/
+.home/
+.dsh-skin-verify/
+DerivedData/
+*.xcresult
+*.xcuserstate
+*.xcuserdatad/
+.swiftpm/
