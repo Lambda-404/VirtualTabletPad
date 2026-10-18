@@ -9,3 +9,5 @@ DerivedData/
 *.xcuserstate
 *.xcuserdatad/
 .swiftpm/
+__pycache__/
+*.pyc
