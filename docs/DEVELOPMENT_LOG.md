@@ -6,8 +6,8 @@ Full implementation of [`AGENT_PLAN.md`](AGENT_PLAN.md): an encrypted Apple Penc
 graphics tablet and virtual trackpad that turns an iPad into an input device for a Mac.
 
 <p>
-<img src="docs/ipad-real-device.jpg" width="58%" alt="Real iPad Air 11-inch M2 running the Liquid Glass workspace over USB">
-<img src="docs/settings-merged.png" width="40%" alt="Unified Settings center">
+<img src="docs/ipad-simulator.png" width="58%" alt="iPadOS 27 Simulator (iPad Pro 13-inch M5) running the Liquid Glass workspace">
+<img src="docs/settings-merged.png" width="40%" alt="Unified Settings center (Pencil tab)">
 </p>
 
 The iPadOS 26+ workspace is a **graphics-tablet slab** under a **Touch Bar-style top
@@ -569,18 +569,18 @@ iPadClient/
 virtual_tablet_pad_icon.svg        source icon
 Tools/vpad_probe.py                dev-only fake iPad for Mac E2E
 docs/app-icon.png                  rasterized app icon
-docs/ipad-liquid-glass.png         Liquid Glass simulator screenshot
-docs/ipad-real-device.jpg          real iPad Liquid Glass screenshot
-docs/ipad-liquid-radial.png        Liquid Glass radial palette
-docs/touchpad-settings.png         touchpad feel settings (real iPad)
-docs/touchpad-settings-top.png     presets and motion curve
-docs/connection-sheet.png          cable / direct IP settings
+docs/ipad-liquid-glass.png         Liquid Glass simulator screenshot (iPadOS 27)
+docs/ipad-real-device.jpg          legacy filename: iPadOS 27 simulator Liquid Glass screenshot
+docs/ipad-liquid-radial.png        Liquid Glass radial palette (simulator)
+docs/touchpad-settings.png         touchpad feel settings (iPadOS 27 simulator)
+docs/touchpad-settings-top.png     presets and motion curve (simulator)
+docs/connection-sheet.png          cable / direct IP settings (simulator)
 docs/function-pad.png              F1–F12 and system keys
 docs/pairing-qr.png                Mac Pair iPad QR window
 docs/keyboard-layout.png           F-key/modifier accessory above keyboard
-docs/settings-merged.png           unified Settings center
+docs/settings-merged.png           unified Settings center (Pencil tab)
 docs/ipad-liquid-direct.png         direct-IP connected screenshot
-docs/ipad-simulator.png            current simulator screenshot
+docs/ipad-simulator.png            current iPadOS 27 simulator screenshot
 ```
 
 ## Verification performed
