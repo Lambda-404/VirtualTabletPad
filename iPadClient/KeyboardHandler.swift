@@ -284,7 +284,8 @@ final class KeyboardCaptureView: UIView, UITextFieldDelegate {
                 guard let keyCode = macKeyMap[hid] else { return nil }
                 return (keyCode, true)
             case 0x30...0x39: // 0...9
-                let hid: UInt16 = 0x1E + UInt16(ascii - 0x30)
+                // In USB HID, keys 1..9 are 0x1E..0x26, and key 0 is 0x27 (at the end of the row).
+                let hid: UInt16 = ascii == 0x30 ? 0x27 : (0x1E + UInt16(ascii - 0x31))
                 guard let keyCode = macKeyMap[hid] else { return nil }
                 return (keyCode, false)
             default:

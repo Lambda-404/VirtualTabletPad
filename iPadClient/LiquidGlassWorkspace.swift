@@ -95,6 +95,14 @@ struct LiquidGlassWorkspaceView: View {
                 settingsSection = .pencil
                 showSettings = true
             }
+            if environment["VPAD_SHOW_FUNCTION_KEYS_SETTINGS"] == "1" {
+                settingsSection = .functionKeys
+                showSettings = true
+            }
+            if environment["VPAD_SHOW_ABOUT_SETTINGS"] == "1" {
+                settingsSection = .about
+                showSettings = true
+            }
             if environment["VPAD_SHOW_FUNCTION_PAD"] == "1" {
                 showFunctionPad = true
             }

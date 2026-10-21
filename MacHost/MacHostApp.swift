@@ -137,6 +137,13 @@ struct MacHostApp: App {
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
+        if ProcessInfo.processInfo.environment["VPAD_DRY_RUN_INJECT"] == "1" {
+            let line = "[DRY_RUN] MacHost started with VPAD_DRY_RUN_INJECT=1\n"
+            if let data = line.data(using: .utf8) {
+                FileHandle.standardOutput.write(data)
+                try? FileHandle.standardOutput.synchronize()
+            }
+        }
         NSApp.setActivationPolicy(.accessory)
         AccessibilityManager.shared.start()
         UDPServer.shared.start()

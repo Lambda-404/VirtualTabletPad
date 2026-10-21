@@ -301,6 +301,7 @@ private final class TCPControlConnection: @unchecked Sendable {
         server.clearActive(self)
 
         if wasCurrent {
+            EventInjector.shared.releaseAll()
             UDPServer.shared.endSession(token: token)
             Task { await SessionState.shared.disarm(token: token) }
             Task { @MainActor in HostStatus.shared.markDisconnected() }

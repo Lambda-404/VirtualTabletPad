@@ -17,7 +17,11 @@ final class AccessibilityManager: ObservableObject {
     private var hasPrompted = false
 
     private init() {
-        isTrusted = AXIsProcessTrusted()
+        if ProcessInfo.processInfo.environment["VPAD_SKIP_AX_PROMPT"] == "1" {
+            isTrusted = true
+        } else {
+            isTrusted = AXIsProcessTrusted()
+        }
     }
 
     func start() {
@@ -29,13 +33,20 @@ final class AccessibilityManager: ObservableObject {
         pollTask = Task { [weak self] in
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(1.5))
-                let trusted = AXIsProcessTrusted()
-                self?.apply(trusted)
+                if ProcessInfo.processInfo.environment["VPAD_SKIP_AX_PROMPT"] == "1" {
+                    self?.apply(true)
+                } else {
+                    let trusted = AXIsProcessTrusted()
+                    self?.apply(trusted)
+                }
             }
         }
     }
 
     func requestAccess() {
+        if ProcessInfo.processInfo.environment["VPAD_SKIP_AX_PROMPT"] == "1" {
+            return
+        }
         guard !hasPrompted else {
             openSettings()
             return
@@ -46,6 +57,9 @@ final class AccessibilityManager: ObservableObject {
     }
 
     func openSettings() {
+        if ProcessInfo.processInfo.environment["VPAD_SKIP_AX_PROMPT"] == "1" {
+            return
+        }
         guard let url = URL(
             string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
         ) else {

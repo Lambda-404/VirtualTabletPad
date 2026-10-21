@@ -193,6 +193,15 @@ final class GestureMapper: @unchecked Sendable {
             return
         }
 
+        if ProcessInfo.processInfo.environment["VPAD_DRY_RUN_INJECT"] == "1" {
+            let line = "[DRY_RUN] SCRIPT path=\(path) arguments=\(arguments)\n"
+            if let data = line.data(using: .utf8) {
+                FileHandle.standardOutput.write(data)
+            }
+            log.notice("VPAD_DRY_RUN SCRIPT path=\(path, privacy: .public) args=\(arguments, privacy: .public)")
+            return
+        }
+
         let extensionName = URL(fileURLWithPath: path).pathExtension.lowercased()
         DispatchQueue.global(qos: .utility).async {
             let process = Process()

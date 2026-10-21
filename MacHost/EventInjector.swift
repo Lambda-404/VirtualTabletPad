@@ -15,6 +15,7 @@ final class EventInjector: @unchecked Sendable {
     private let log = Logger(subsystem: "com.vpad.MacHost", category: "inject")
     private let eventSource: CGEventSource?
     private let macroQueue = DispatchQueue(label: "com.vpad.macro", qos: .utility)
+    private let isDryRun: Bool = ProcessInfo.processInfo.environment["VPAD_DRY_RUN_INJECT"] == "1"
 
     private var isSpacebarHeld = false
     private var isLeftMouseDown = false
@@ -25,6 +26,15 @@ final class EventInjector: @unchecked Sendable {
 
     private init() {
         eventSource = CGEventSource(stateID: .hidSystemState)
+    }
+
+    private func logDryRun(_ message: String) {
+        log.notice("VPAD_DRY_RUN \(message, privacy: .public)")
+        let line = "[DRY_RUN] \(message)\n"
+        if let data = line.data(using: .utf8) {
+            FileHandle.standardOutput.write(data)
+            try? FileHandle.standardOutput.synchronize()
+        }
     }
 
     // MARK: - Public entry points
@@ -84,6 +94,9 @@ final class EventInjector: @unchecked Sendable {
 
     /// Releases Space, mouse buttons and all tracked keyboard keys.
     func releaseAll() {
+        if isDryRun {
+            logDryRun("RELEASE_ALL")
+        }
         releaseAllKeys()
         if isSpacebarHeld {
             isSpacebarHeld = false
@@ -131,6 +144,10 @@ final class EventInjector: @unchecked Sendable {
     private func wakeDisplayIfNeeded() {
         guard !didWakeDisplay else { return }
         didWakeDisplay = true
+        if isDryRun {
+            logDryRun("WAKE_DISPLAY")
+            return
+        }
         var assertionID: IOPMAssertionID = 0
         _ = IOPMAssertionDeclareUserActivity(
             "VirtualTabletPad" as CFString,
@@ -171,6 +188,10 @@ final class EventInjector: @unchecked Sendable {
         case .desktopRight:
             postKeyCombo(CGKeyCode(124), flags: .maskControl)
         case .launchpad:
+            if isDryRun {
+                logDryRun("OPEN_URL url=/System/Applications/Launchpad.app action=launchpad")
+                return
+            }
             DispatchQueue.main.async {
                 let modern = "/System/Applications/Apps.app"
                 let legacy = "/System/Applications/Launchpad.app"
@@ -190,6 +211,10 @@ final class EventInjector: @unchecked Sendable {
     }
 
     private func postSystemKeyEvent(_ keyType: Int, down: Bool) {
+        if isDryRun {
+            logDryRun("SYSTEM_KEY keyType=\(keyType) down=\(down)")
+            return
+        }
         let state = down ? 0x0A : 0x0B
         let data1 = (keyType << 16) | (state << 8)
         guard let event = NSEvent.otherEvent(
@@ -210,6 +235,10 @@ final class EventInjector: @unchecked Sendable {
         _ action: String,
         fallback: () -> Void
     ) {
+        if isDryRun {
+            logDryRun("AX_ACTION action=\(action)")
+            return
+        }
         guard let dock = NSRunningApplication
             .runningApplications(withBundleIdentifier: "com.apple.dock")
             .first else {
@@ -241,6 +270,10 @@ final class EventInjector: @unchecked Sendable {
         flags: CGEventFlags,
         down: Bool
     ) {
+        if isDryRun {
+            logDryRun("HOTKEY keyCode=\(keyCode) down=\(down) flags=\(flags.rawValue)")
+            return
+        }
         guard let event = CGEvent(
             keyboardEventSource: eventSource,
             virtualKey: keyCode,
@@ -271,6 +304,10 @@ final class EventInjector: @unchecked Sendable {
 
     private func injectTrackpadScroll(_ packet: VPadPacket, flags: CGEventFlags) {
         guard packet.x.isFinite, packet.y.isFinite else { return }
+        if isDryRun {
+            logDryRun("SCROLL dx=\(packet.x) dy=\(packet.y) flags=\(flags.rawValue)")
+            return
+        }
         guard let event = CGEvent(
             scrollWheelEvent2Source: eventSource,
             units: .pixel,
@@ -318,6 +355,10 @@ final class EventInjector: @unchecked Sendable {
             isStylusDown = false
             postMouse(.leftMouseUp, at: currentPointerLocation(), button: .left, flags: flags)
         }
+        if isDryRun {
+            logDryRun("PROXIMITY entering=\(entering ? 1 : 0) flags=\(flags.rawValue)")
+            return
+        }
         guard let event = CGEvent(source: eventSource) else { return }
         event.type = .tabletProximity
         event.flags = flags
@@ -363,7 +404,11 @@ final class EventInjector: @unchecked Sendable {
            (0...1).contains(packet.x),
            (0...1).contains(packet.y) {
             point = mapped
-            CGWarpMouseCursorPosition(point)
+            if isDryRun {
+                logDryRun("WARP_CURSOR x=\(String(format: "%.2f", point.x)) y=\(String(format: "%.2f", point.y))")
+            } else {
+                CGWarpMouseCursorPosition(point)
+            }
         } else {
             point = currentPointerLocation()
         }
@@ -381,6 +426,13 @@ final class EventInjector: @unchecked Sendable {
         packet: VPadPacket,
         flags: CGEventFlags
     ) {
+        let degrees = packet.rollAngle.isFinite
+            ? fmod((Double(packet.rollAngle) * 180.0 / .pi) + 360.0, 360.0)
+            : 0
+        if isDryRun {
+            logDryRun("TABLET_MOUSE type=\(type.rawValue) x=\(String(format: "%.2f", point.x)) y=\(String(format: "%.2f", point.y)) button=\(button.rawValue) flags=\(flags.rawValue) pressure=\(String(format: "%.3f", safeUnit(packet.pressure))) tiltX=\(String(format: "%.3f", safeBipolar(packet.tiltX))) tiltY=\(String(format: "%.3f", safeBipolar(packet.tiltY))) rotation=\(String(format: "%.1f", degrees)) subtype=\(CGEventMouseSubtype.tabletPoint.rawValue)")
+            return
+        }
         guard let event = CGEvent(
             mouseEventSource: eventSource,
             mouseType: type,
@@ -397,9 +449,6 @@ final class EventInjector: @unchecked Sendable {
         event.setDoubleValueField(.mouseEventPressure, value: safeUnit(packet.pressure))
         event.setDoubleValueField(.tabletEventTiltX, value: safeBipolar(packet.tiltX))
         event.setDoubleValueField(.tabletEventTiltY, value: safeBipolar(packet.tiltY))
-        let degrees = packet.rollAngle.isFinite
-            ? fmod((Double(packet.rollAngle) * 180.0 / .pi) + 360.0, 360.0)
-            : 0
         event.setDoubleValueField(.tabletEventRotation, value: degrees)
         event.post(tap: .cghidEventTap)
     }
@@ -450,6 +499,10 @@ final class EventInjector: @unchecked Sendable {
         down: Bool,
         autorepeat: Bool = false
     ) {
+        if isDryRun {
+            logDryRun("KEY keyCode=\(keyCode) down=\(down) autorepeat=\(autorepeat ? 1 : 0) flags=\(flags.rawValue)")
+            return
+        }
         guard let event = CGEvent(
             keyboardEventSource: eventSource,
             virtualKey: keyCode,
@@ -474,7 +527,10 @@ final class EventInjector: @unchecked Sendable {
     // MARK: - Geometry / conversion helpers
 
     private func currentPointerLocation() -> CGPoint {
-        CGEvent(source: nil)?.location ?? .zero
+        if isDryRun {
+            return CGPoint(x: 500, y: 500)
+        }
+        return CGEvent(source: nil)?.location ?? .zero
     }
 
     private func mainDisplayBounds() -> CGRect {
@@ -535,6 +591,10 @@ final class EventInjector: @unchecked Sendable {
         button: CGMouseButton,
         flags: CGEventFlags
     ) {
+        if isDryRun {
+            logDryRun("MOUSE type=\(type.rawValue) x=\(String(format: "%.2f", point.x)) y=\(String(format: "%.2f", point.y)) button=\(button.rawValue) flags=\(flags.rawValue)")
+            return
+        }
         guard let event = CGEvent(
             mouseEventSource: eventSource,
             mouseType: type,
