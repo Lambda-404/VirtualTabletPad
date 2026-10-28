@@ -201,3 +201,4 @@ Each feature gets its own branch and settings UI, with settings stored in a `Cod
 | 0.2  | done   | agent/0.2-ci | GitHub Actions CI workflow added (.github/workflows/ci.yml) |
 | 0.3  | done   | agent/0.3-lint-and-contrib | Added .swiftlint.yml, CONTRIBUTING.md, and bug_report.yml |
 | 1.1  | done   | agent/1.1-threat-model | Threat model documented in docs/security.md |
+| 1.2  | done   | agent/1.2-identity-keys | Added IdentityKey, KeyStore protocols, InMemory/Keychain stores, unit tests |
