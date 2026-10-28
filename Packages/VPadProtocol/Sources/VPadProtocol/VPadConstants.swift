@@ -102,6 +102,7 @@ public enum ProtocolErrorCode: UInt8, Sendable, CaseIterable {
 
 public enum VPadConstants {
     public static let protocolVersion: UInt8 = 1
+    public static let protocolVersionV2: UInt8 = 2
 
     public static let udpService = "_vpad._udp"
     public static let tcpService = "_vpad-tcp._tcp"
@@ -112,6 +113,9 @@ public enum VPadConstants {
 
     public static let hkdfSalt = Data("VPadSalt".utf8)
     public static let hkdfInfo = Data("VPadSessionKey".utf8)
+
+    public static let hkdfInfoV2C2S = "VPad v2 c2s"
+    public static let hkdfInfoV2S2C = "VPad v2 s2c"
 
     public static let nonceSize = 12
     public static let ciphertextSize = 28
