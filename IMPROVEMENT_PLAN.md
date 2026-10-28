@@ -198,3 +198,4 @@ Each feature gets its own branch and settings UI, with settings stored in a `Cod
 | Task | Status | PR/Branch | Notes |
 |------|--------|-----------|-------|
 | 0.1  | done   | agent/0.1-baseline-audit | Baseline audit complete; docs/PLAN_NOTES.md created |
+| 0.2  | done   | agent/0.2-ci | GitHub Actions CI workflow added (.github/workflows/ci.yml) |
