@@ -129,14 +129,97 @@ private final class TCPControlConnection: @unchecked Sendable {
     // MARK: Handshake
 
     private func handleHello(_ frame: VPadFrame) {
-        guard frame.body.count == 1 + VPadConstants.publicKeySize,
-              let version = frame.body.first else {
+        guard let version = frame.body.first else {
             failProtocol(.malformedFrame)
             return
         }
-        guard version == VPadConstants.protocolVersion else {
-            log.error("protocol version mismatch: client \(version, privacy: .public)")
-            failProtocol(.unsupportedVersion)
+
+        if version == VPadConstants.protocolVersionV2 {
+            handleHelloV2(frame)
+            return
+        }
+
+        #if DEBUG
+        if version == VPadConstants.protocolVersion {
+            handleHelloV1(frame)
+            return
+        }
+        #endif
+
+        log.error("protocol version mismatch: client \(version, privacy: .public)")
+        failProtocol(.unsupportedVersion)
+    }
+
+    private func handleHelloV2(_ frame: VPadFrame) {
+        let clientPayload: ClientHelloPayload
+        do {
+            clientPayload = try ClientHelloPayload.decode(frame.body)
+        } catch {
+            log.error("failed to decode client hello v2: \(error.localizedDescription, privacy: .public)")
+            failProtocol(.malformedFrame)
+            return
+        }
+
+        let clientIdentity = clientPayload.identityPublicKey
+        let isAllowed = PersistentDeviceAllowlistStore.shared.isAllowed(identity: clientIdentity)
+
+        if !isAllowed {
+            guard let token = clientPayload.pairingToken,
+                  PairingTokenManager.shared.validateAndConsume(token: token) else {
+                log.error("client \(self.peerDescription, privacy: .public) is not paired and pairing token is missing or invalid")
+                failProtocol(.unsupportedVersion)
+                return
+            }
+            let deviceName = clientPayload.deviceName ?? "iPad"
+            let newDevice = PairedDevice(name: deviceName, identityPublicKey: clientIdentity)
+            PersistentDeviceAllowlistStore.shared.allow(device: newDevice)
+            Task { @MainActor in
+                HostStatus.shared.refreshPairedDevices()
+            }
+            log.info("approved and paired new device: \(deviceName, privacy: .public)")
+        }
+
+        let hostIdentity = HostIdentity.current()
+        let sessionID = UInt32.random(in: 1...UInt32.max)
+
+        do {
+            let (ackPayload, handshakeSession) = try VPadHandshake.respondServer(
+                clientPayload: clientPayload,
+                serverIdentity: hostIdentity,
+                allowedClientIdentities: nil,
+                sessionID: sessionID
+            )
+
+            let newSession = SessionCrypto(session: handshakeSession, role: .host)
+            session = newSession
+            state = .ready
+            handshakeWorkItem?.cancel()
+            handshakeWorkItem = nil
+
+            // Arm UDP before READY so the first encrypted datagram cannot race us.
+            UDPServer.shared.arm(token: token, session: newSession)
+            let peer = clientPayload.deviceName ?? peerDescription
+            Task {
+                await SessionState.shared.arm(token: token, session: newSession, peer: peer)
+            }
+
+            sendPlaintext(.helloAck, body: ackPayload.encode())
+            sendPlaintext(.ready)
+
+            Task { @MainActor in
+                HostStatus.shared.markConnected(peer: peer)
+            }
+            log.info("v2 session ready with \(peer, privacy: .public) (sessionID: \(sessionID))")
+        } catch {
+            log.error("v2 handshake failed: \(error.localizedDescription, privacy: .public)")
+            failProtocol(.malformedFrame)
+        }
+    }
+
+    #if DEBUG
+    private func handleHelloV1(_ frame: VPadFrame) {
+        guard frame.body.count == 1 + VPadConstants.publicKeySize else {
+            failProtocol(.malformedFrame)
             return
         }
 
@@ -167,12 +250,13 @@ private final class TCPControlConnection: @unchecked Sendable {
             Task { @MainActor in
                 HostStatus.shared.markConnected(peer: peer)
             }
-            log.info("session ready with \(peer, privacy: .public)")
+            log.info("v1 debug session ready with \(peer, privacy: .public)")
         } catch {
-            log.error("key agreement failed")
+            log.error("v1 key agreement failed")
             failProtocol(.malformedFrame)
         }
     }
+    #endif
 
     private func handshakeTimedOut() {
         guard state == .awaitingHello else { return }

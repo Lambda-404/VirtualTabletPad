@@ -65,8 +65,15 @@ final class HostStatus: ObservableObject {
     @Published var lastUploadName: String?
     @Published var lastUploadStatus: FileStatus?
     @Published var lastError: String?
+    @Published var pairedDevices: [PairedDevice] = []
 
-    private init() {}
+    private init() {
+        refreshPairedDevices()
+    }
+
+    func refreshPairedDevices() {
+        pairedDevices = PersistentDeviceAllowlistStore.shared.allDevices()
+    }
 
     func update(stats: SessionStats) {
         receivedPackets = stats.received
@@ -254,6 +261,25 @@ private struct HostMenuView: View {
         Text(appVersionText())
             .font(.caption2)
             .foregroundStyle(.secondary)
+
+        if !status.pairedDevices.isEmpty {
+            Divider()
+            Text("Paired Devices")
+                .font(.caption)
+                .fontWeight(.semibold)
+            ForEach(status.pairedDevices) { device in
+                HStack {
+                    Text(device.name)
+                        .font(.caption)
+                    Spacer()
+                    Button("Forget") {
+                        PersistentDeviceAllowlistStore.shared.forget(identity: device.identityPublicKey)
+                        status.refreshPairedDevices()
+                    }
+                    .font(.caption2)
+                }
+            }
+        }
 
         Divider()
 

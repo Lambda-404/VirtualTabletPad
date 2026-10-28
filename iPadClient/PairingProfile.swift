@@ -1,12 +1,15 @@
 import Combine
 import Foundation
+import VPadProtocol
 
 struct PairedProfile: Codable, Equatable, Sendable {
-    var version: Int = 1
+    var version: Int = 2
     var name: String
     var host: String
     var tcpPort: UInt16 = 8889
     var udpPort: UInt16 = 8888
+    var hostIdentityPublicKey: Data?
+    var pairingToken: Data?
 }
 
 @MainActor
@@ -36,9 +39,21 @@ final class PairingProfileStore: ObservableObject {
         UserDefaults.standard.removeObject(forKey: Self.key)
     }
 
-    /// Accepts either the Mac's JSON payload or a vpad://pair URL with the same fields.
+    /// Accepts vpad://pair URL or the Mac's JSON payload.
     func decode(_ string: String) -> PairedProfile? {
-        let json: String
+        if let v2 = PairingPayloadV2.decode(from: string) {
+            guard !v2.isExpired else { return nil }
+            return PairedProfile(
+                version: v2.version,
+                name: v2.name,
+                host: v2.host,
+                tcpPort: v2.tcpPort,
+                udpPort: v2.udpPort,
+                hostIdentityPublicKey: v2.hostIdentityPublicKey,
+                pairingToken: v2.pairingToken
+            )
+        }
+
         if let url = URL(string: string), url.scheme == "vpad", let components = URLComponents(url: url, resolvingAgainstBaseURL: false) {
             var dict: [String: Any] = [:]
             for item in components.queryItems ?? [] {
@@ -53,12 +68,12 @@ final class PairingProfileStore: ObservableObject {
             if let host = object["host"] as? String, let name = object["name"] as? String {
                 let tcp = UInt16(object["tcp"] as? String ?? "") ?? 8889
                 let udp = UInt16(object["udp"] as? String ?? "") ?? 8888
-                return PairedProfile(name: name, host: host, tcpPort: tcp, udpPort: udp)
+                return PairedProfile(version: 1, name: name, host: host, tcpPort: tcp, udpPort: udp)
             }
             return nil
         }
-        json = string
-        guard let data = json.data(using: .utf8),
+
+        guard let data = string.data(using: .utf8),
               let profile = try? JSONDecoder().decode(PairedProfile.self, from: data),
               !profile.host.isEmpty else {
             return nil

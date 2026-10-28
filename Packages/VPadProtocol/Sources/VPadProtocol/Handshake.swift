@@ -32,7 +32,7 @@ public struct HandshakeSession: Sendable {
     }
 }
 
-/// Client Hello message payload (129 bytes).
+/// Client Hello message payload (129+ bytes).
 public struct ClientHelloPayload: Equatable, Sendable {
     public static let expectedLength = 1 + 32 + 32 + 64
 
@@ -40,30 +40,42 @@ public struct ClientHelloPayload: Equatable, Sendable {
     public let ephemeralPublicKey: Data
     public let identityPublicKey: Data
     public let signature: Data
+    public let pairingToken: Data?
+    public let deviceName: String?
 
     public init(
         version: UInt8 = VPadConstants.protocolVersionV2,
         ephemeralPublicKey: Data,
         identityPublicKey: Data,
-        signature: Data
+        signature: Data,
+        pairingToken: Data? = nil,
+        deviceName: String? = nil
     ) {
         self.version = version
         self.ephemeralPublicKey = ephemeralPublicKey
         self.identityPublicKey = identityPublicKey
         self.signature = signature
+        self.pairingToken = pairingToken
+        self.deviceName = deviceName
     }
 
     public func encode() -> Data {
-        var data = Data(capacity: Self.expectedLength)
+        var data = Data(capacity: Self.expectedLength + (pairingToken != nil ? 16 : 0))
         data.append(version)
         data.append(ephemeralPublicKey)
         data.append(identityPublicKey)
         data.append(signature)
+        if let token = pairingToken {
+            data.append(token.prefix(16))
+            if let nameData = deviceName?.data(using: .utf8) {
+                data.append(nameData)
+            }
+        }
         return data
     }
 
     public static func decode(_ data: Data) throws -> ClientHelloPayload {
-        guard data.count == expectedLength else {
+        guard data.count >= expectedLength else {
             throw HandshakeError.invalidLength
         }
         let version = data[0]
@@ -73,11 +85,23 @@ public struct ClientHelloPayload: Equatable, Sendable {
         let ephemeral = Data(data[1..<33])
         let identity = Data(data[33..<65])
         let signature = Data(data[65..<129])
+
+        var token: Data?
+        var name: String?
+        if data.count >= expectedLength + 16 {
+            token = Data(data[129..<145])
+            if data.count > 145 {
+                name = String(data: data[145...], encoding: .utf8)
+            }
+        }
+
         return ClientHelloPayload(
             version: version,
             ephemeralPublicKey: ephemeral,
             identityPublicKey: identity,
-            signature: signature
+            signature: signature,
+            pairingToken: token,
+            deviceName: name
         )
     }
 }
@@ -161,13 +185,17 @@ public enum VPadHandshake {
     public static func clientTranscript(
         version: UInt8,
         ephemeralPublicKey: Data,
-        identityPublicKey: Data
+        identityPublicKey: Data,
+        pairingToken: Data? = nil
     ) -> Data {
         var data = Data()
         data.append(clientPrefix)
         data.append(version)
         data.append(ephemeralPublicKey)
         data.append(identityPublicKey)
+        if let token = pairingToken {
+            data.append(token.prefix(16))
+        }
         return data
     }
 
@@ -220,7 +248,9 @@ public enum VPadHandshake {
     // MARK: - Client step 1
 
     public static func initiateClient(
-        clientIdentity: IdentityKey
+        clientIdentity: IdentityKey,
+        pairingToken: Data? = nil,
+        deviceName: String? = nil
     ) throws -> (payload: ClientHelloPayload, state: ClientHandshakeState) {
         let ephemeralPrivate = Curve25519.KeyAgreement.PrivateKey()
         let ephemeralPublic = ephemeralPrivate.publicKey.rawRepresentation
@@ -229,7 +259,8 @@ public enum VPadHandshake {
         let transcript = clientTranscript(
             version: VPadConstants.protocolVersionV2,
             ephemeralPublicKey: ephemeralPublic,
-            identityPublicKey: identityPublic
+            identityPublicKey: identityPublic,
+            pairingToken: pairingToken
         )
         let signature = try clientIdentity.sign(transcript)
 
@@ -237,7 +268,9 @@ public enum VPadHandshake {
             version: VPadConstants.protocolVersionV2,
             ephemeralPublicKey: ephemeralPublic,
             identityPublicKey: identityPublic,
-            signature: signature
+            signature: signature,
+            pairingToken: pairingToken,
+            deviceName: deviceName
         )
         let state = ClientHandshakeState(
             clientEphemeralPrivateKey: ephemeralPrivate,
@@ -262,7 +295,8 @@ public enum VPadHandshake {
         let clientTranscriptData = clientTranscript(
             version: clientPayload.version,
             ephemeralPublicKey: clientPayload.ephemeralPublicKey,
-            identityPublicKey: clientPayload.identityPublicKey
+            identityPublicKey: clientPayload.identityPublicKey,
+            pairingToken: clientPayload.pairingToken
         )
         guard IdentityKey.verify(
             signature: clientPayload.signature,

@@ -15,6 +15,7 @@
 		339E6F79B560C01ACCF9A92B /* EventInjector.swift in Sources */ = {isa = PBXBuildFile; fileRef = F44A2EFE78297924A1B14B40 /* EventInjector.swift */; };
 		36706010021AF27E43AF4A81 /* VPadProtocol in Frameworks */ = {isa = PBXBuildFile; productRef = F013512D136096C8C3CD7519 /* VPadProtocol */; };
 		3ABE6E325E8A54E4C7E36F4C /* PairingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 344B61CAC1A2EBBCE0ED73C6 /* PairingView.swift */; };
+		45F43047E1DA7B77FB7B1554 /* HostIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB1BEA6FA3BD2EE9D61CC75D /* HostIdentity.swift */; };
 		51FBE24AC1BFE22B80A5216F /* LinkDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 050D3541CB77806EB1BE5730 /* LinkDiscovery.swift */; };
 		56E7405431CD270F55066E03 /* HybridCanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 220E334F8914C51E81521057 /* HybridCanvasView.swift */; };
 		57148F391D19D41E5F8A3D26 /* SessionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08779CA1D485CED7333FB736 /* SessionCoordinator.swift */; };
@@ -34,6 +35,7 @@
 		BD8E87C72F239474CF3456BF /* KeyboardHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DB5443D740C86B261288C07 /* KeyboardHandler.swift */; };
 		BED28A20033938CA3CB3F3EF /* ConnectionSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B50CA2594657E98C737D855D /* ConnectionSettingsView.swift */; };
 		C32A56F1E2EDD7963829C913 /* PencilStatusMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B513FB13ED23BA741ED26333 /* PencilStatusMonitor.swift */; };
+		C64D9F2E998F2568AD232835 /* ClientIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7C42110E0E935E97D535F18 /* ClientIdentity.swift */; };
 		CA9824D1D3F4E20B16BD7DF6 /* SessionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118F4834EE944827B95FE004 /* SessionState.swift */; };
 		CAB1D451CE240D909CCD4D52 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A767D6BE5165D7D7C44E4B2D /* Assets.xcassets */; };
 		D1C01667EC9B9AE322EF9BEE /* iPadClientApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C0C6B3246B3C6801476CCE1 /* iPadClientApp.swift */; };
@@ -82,11 +84,13 @@
 		B50CA2594657E98C737D855D /* ConnectionSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionSettingsView.swift; sourceTree = "<group>"; };
 		B513FB13ED23BA741ED26333 /* PencilStatusMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PencilStatusMonitor.swift; sourceTree = "<group>"; };
 		B635C96C68DE1FBB64E212C7 /* UDPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UDPClient.swift; sourceTree = "<group>"; };
+		BB1BEA6FA3BD2EE9D61CC75D /* HostIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostIdentity.swift; sourceTree = "<group>"; };
 		CE7844CA9290A3D04600C96D /* MacHostApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacHostApp.swift; sourceTree = "<group>"; };
 		EA21D4A82CF1437D4C1E5ADA /* TouchpadSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TouchpadSettings.swift; sourceTree = "<group>"; };
 		F30A3FE22F973326DB919A9E /* PairingProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingProfile.swift; sourceTree = "<group>"; };
 		F44A2EFE78297924A1B14B40 /* EventInjector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventInjector.swift; sourceTree = "<group>"; };
 		F724A3A974832BDC7E1217F9 /* GestureEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureEngine.swift; sourceTree = "<group>"; };
+		F7C42110E0E935E97D535F18 /* ClientIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClientIdentity.swift; sourceTree = "<group>"; };
 		F901100F85DA31ED6D05A4A6 /* GestureMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureMapper.swift; sourceTree = "<group>"; };
 		FA3DAEA7745FDBFEB336BA66 /* FileReceiver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileReceiver.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -115,6 +119,7 @@
 			isa = PBXGroup;
 			children = (
 				A767D6BE5165D7D7C44E4B2D /* Assets.xcassets */,
+				F7C42110E0E935E97D535F18 /* ClientIdentity.swift */,
 				B50CA2594657E98C737D855D /* ConnectionSettingsView.swift */,
 				AD88789C9A226C86A7AD8D21 /* FunctionKeys.swift */,
 				F724A3A974832BDC7E1217F9 /* GestureEngine.swift */,
@@ -152,6 +157,7 @@
 				F901100F85DA31ED6D05A4A6 /* GestureMapper.swift */,
 				79E79667FDB4874B70727DA8 /* GestureMapView.swift */,
 				2D96DF6408B9397B911AF673 /* HostBeacon.swift */,
+				BB1BEA6FA3BD2EE9D61CC75D /* HostIdentity.swift */,
 				CE7844CA9290A3D04600C96D /* MacHostApp.swift */,
 				344B61CAC1A2EBBCE0ED73C6 /* PairingView.swift */,
 				118F4834EE944827B95FE004 /* SessionState.swift */,
@@ -297,6 +303,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C64D9F2E998F2568AD232835 /* ClientIdentity.swift in Sources */,
 				BED28A20033938CA3CB3F3EF /* ConnectionSettingsView.swift in Sources */,
 				7DA78D01D0094CA0025CC522 /* FunctionKeys.swift in Sources */,
 				0699D6326CDE2946B100D0DC /* GestureEngine.swift in Sources */,
@@ -333,6 +340,7 @@
 				5FC51E08AD1FE60F606E13C0 /* GestureMapView.swift in Sources */,
 				7165F1EAE7390130F5F08176 /* GestureMapper.swift in Sources */,
 				E8F873882B47FAC8C2E854C4 /* HostBeacon.swift in Sources */,
+				45F43047E1DA7B77FB7B1554 /* HostIdentity.swift in Sources */,
 				584CF6EFC8B93791FDBAE7A1 /* MacHostApp.swift in Sources */,
 				3ABE6E325E8A54E4C7E36F4C /* PairingView.swift in Sources */,
 				CA9824D1D3F4E20B16BD7DF6 /* SessionState.swift in Sources */,

@@ -107,6 +107,7 @@ public struct PairedDevice: Codable, Equatable, Sendable, Identifiable {
 
 /// Thread-safe manager for generating and validating single-use pairing tokens.
 public final class PairingTokenManager: @unchecked Sendable {
+    public static let shared = PairingTokenManager()
     private let lock = NSLock()
     private var activeTokens: [Data: TimeInterval] = [:]
 
@@ -198,6 +199,7 @@ public final class InMemoryDeviceAllowlistStore: DeviceAllowlistStore, @unchecke
 
 /// Persistent UserDefaults-backed allowlist store for production hosts.
 public final class PersistentDeviceAllowlistStore: DeviceAllowlistStore, @unchecked Sendable {
+    public static let shared = PersistentDeviceAllowlistStore()
     private let defaults: UserDefaults
     private let key: String
     private let lock = NSLock()

@@ -2,14 +2,7 @@ import AppKit
 import CoreImage
 import CoreImage.CIFilterBuiltins
 import SwiftUI
-
-private struct PairingPayload: Codable {
-    let version: Int
-    let name: String
-    let host: String
-    let tcpPort: UInt16
-    let udpPort: UInt16
-}
+import VPadProtocol
 
 struct PairingView: View {
     @State private var addresses: [String] = []
@@ -43,8 +36,11 @@ struct PairingView: View {
                 Text("Address: \(selectedHost.isEmpty ? "no Wi-Fi address" : selectedHost)")
                     .font(.system(size: 12, design: .monospaced))
                     .foregroundStyle(.secondary)
-                Text("TCP 8889 · UDP 8888 · E2EE X25519/AES-GCM")
+                Text("TCP 8889 · UDP 8888 · Mutual Ed25519 Auth & AES-GCM")
                     .font(.system(size: 11, design: .monospaced))
+                    .foregroundStyle(.secondary)
+                Text("Code expires in 5 minutes")
+                    .font(.system(size: 11, design: .rounded))
                     .foregroundStyle(.secondary)
             }
 
@@ -83,16 +79,20 @@ struct PairingView: View {
             qrImage = nil
             return
         }
-        let payload = PairingPayload(
-            version: 1,
-            name: Host.current().localizedName ?? "Mac",
+        let hostIdentity = HostIdentity.current()
+        let (token, expiresAt) = PairingTokenManager.shared.generateToken(expiresIn: 300)
+        let payload = PairingPayloadV2(
+            version: 2,
             host: selectedHost,
-            tcpPort: 8889,
-            udpPort: 8888
+            name: Host.current().localizedName ?? "Mac",
+            tcpPort: VPadConstants.tcpPort,
+            udpPort: VPadConstants.udpPort,
+            hostIdentityPublicKey: hostIdentity.publicKeyData,
+            pairingToken: token,
+            expiresAt: expiresAt
         )
-        guard let data = try? JSONEncoder().encode(payload),
-              let string = String(data: data, encoding: .utf8),
-              let image = makeQRCode(string) else {
+        let string = payload.encodeToURLString()
+        guard let image = makeQRCode(string) else {
             qrImage = nil
             return
         }

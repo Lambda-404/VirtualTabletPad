@@ -2,6 +2,7 @@ import CryptoKit
 import Foundation
 import Network
 import os
+import UIKit
 import VPadProtocol
 
 /// Client half of the TCP control channel: discovery, ECDH handshake, PING/PONG,
@@ -42,6 +43,7 @@ final class TCPFileClient: @unchecked Sendable {
     private var connection: NWConnection?
     private var decoder = VPadFrameDecoder()
     private var privateKey: Curve25519.KeyAgreement.PrivateKey?
+    private var handshakeState: ClientHandshakeState?
     private var session: SessionCrypto?
     private var state: State = .idle
     private var transportMode: TransportMode = .automatic
@@ -162,7 +164,9 @@ final class TCPFileClient: @unchecked Sendable {
         guard isStarted, transportMode == .usb, usbListener == nil else { return }
         guard let port = NWEndpoint.Port(rawValue: 8890) else { return }
         do {
-            let listener = try NWListener(using: makeTCPParameters(), on: port)
+            let parameters = makeTCPParameters()
+            parameters.requiredInterfaceType = .loopback
+            let listener = try NWListener(using: parameters, on: port)
             listener.newConnectionHandler = { [weak self] connection in
                 guard let self else { return }
                 self.queue.async { [weak self] in
@@ -177,7 +181,7 @@ final class TCPFileClient: @unchecked Sendable {
             }
             listener.start(queue: queue)
             usbListener = listener
-            log.info("USB listener ready on tcp/8890")
+            log.info("USB listener ready on loopback tcp/8890")
         } catch {
             emit(.error("USB listener failed: \(error.localizedDescription)"))
             scheduleUSBListenerRestart()
@@ -259,6 +263,7 @@ final class TCPFileClient: @unchecked Sendable {
         self.connection = nil
         decoder.reset()
         privateKey = CryptoManager.shared.generateKeyPair()
+        handshakeState = nil
         session = nil
         uploadLock.lock()
         uploadStatus = nil
@@ -301,11 +306,41 @@ final class TCPFileClient: @unchecked Sendable {
 
     // MARK: - Handshake
 
+    private func currentDeviceName() -> String {
+        if Thread.isMainThread {
+            return MainActor.assumeIsolated { UIDevice.current.name }
+        } else {
+            return DispatchQueue.main.sync { UIDevice.current.name }
+        }
+    }
+
+    private func currentProfile() -> PairedProfile? {
+        if Thread.isMainThread {
+            return MainActor.assumeIsolated { PairingProfileStore.shared.profile }
+        } else {
+            return DispatchQueue.main.sync { PairingProfileStore.shared.profile }
+        }
+    }
+
     private func sendHelloLocked() {
-        guard let privateKey else { return }
-        var body = Data([VPadConstants.protocolVersion])
-        body.append(CryptoManager.shared.publicKeyData(for: privateKey))
-        sendFrame(type: .hello, body: body, encrypted: false)
+        let clientIdentity = ClientIdentity.current()
+        let profile = currentProfile()
+        let pairingToken = profile?.pairingToken
+        let deviceName = currentDeviceName()
+
+        do {
+            let (payload, state) = try VPadHandshake.initiateClient(
+                clientIdentity: clientIdentity,
+                pairingToken: pairingToken,
+                deviceName: deviceName
+            )
+            self.handshakeState = state
+            sendFrame(type: .hello, body: payload.encode(), encrypted: false)
+            log.info("sent v2 HELLO (hasToken: \(pairingToken != nil, privacy: .public))")
+        } catch {
+            log.error("failed to initiate client handshake: \(error.localizedDescription, privacy: .public)")
+            closeLocked(reason: "handshake initiation failed", reconnect: true)
+        }
     }
 
     func sendInputOverUSB(_ packet: VPadPacket) {
@@ -326,22 +361,7 @@ final class TCPFileClient: @unchecked Sendable {
 
         switch frame.type {
         case .helloAck:
-            guard frame.body.count == 1 + VPadConstants.publicKeySize,
-                  frame.body.first == VPadConstants.protocolVersion,
-                  let privateKey else {
-                closeLocked(reason: "invalid HELLO_ACK", reconnect: true)
-                return
-            }
-            do {
-                let remoteKey = Data(frame.body.dropFirst())
-                let key = try CryptoManager.shared.deriveSessionKey(
-                    privateKey: privateKey,
-                    remotePublicKeyData: remoteKey
-                )
-                session = SessionCrypto(key: key, role: .client)
-            } catch {
-                closeLocked(reason: "key agreement failed", reconnect: true)
-            }
+            handleHelloAck(frame)
         case .ready:
             guard let session else {
                 closeLocked(reason: "READY before HELLO_ACK", reconnect: true)
@@ -374,6 +394,64 @@ final class TCPFileClient: @unchecked Sendable {
         default:
             closeLocked(reason: "unexpected handshake frame", reconnect: true)
         }
+    }
+
+    private func handleHelloAck(_ frame: VPadFrame) {
+        if frame.body.first == VPadConstants.protocolVersionV2 {
+            guard let handshakeState else {
+                closeLocked(reason: "missing client handshake state", reconnect: true)
+                return
+            }
+            do {
+                let ackPayload = try ServerHelloAckPayload.decode(frame.body)
+                let pinnedHostKey = currentProfile()?.hostIdentityPublicKey
+
+                let handshakeSession = try VPadHandshake.completeClient(
+                    state: handshakeState,
+                    ackPayload: ackPayload,
+                    pinnedServerIdentity: pinnedHostKey
+                )
+
+                DispatchQueue.main.async {
+                    if var profile = PairingProfileStore.shared.profile {
+                        if profile.hostIdentityPublicKey == nil {
+                            profile.hostIdentityPublicKey = ackPayload.identityPublicKey
+                        }
+                        profile.pairingToken = nil
+                        PairingProfileStore.shared.save(profile)
+                    }
+                }
+
+                session = SessionCrypto(session: handshakeSession, role: .client)
+                self.handshakeState = nil
+                log.info("v2 handshake completed (sessionID: \(handshakeSession.sessionID))")
+            } catch {
+                log.error("v2 handshake failed: \(error.localizedDescription, privacy: .public)")
+                closeLocked(reason: "handshake verification failed: \(error.localizedDescription)", reconnect: true)
+            }
+            return
+        }
+
+        #if DEBUG
+        if frame.body.count == 1 + VPadConstants.publicKeySize,
+           frame.body.first == VPadConstants.protocolVersion,
+           let privateKey {
+            do {
+                let remoteKey = Data(frame.body.dropFirst())
+                let key = try CryptoManager.shared.deriveSessionKey(
+                    privateKey: privateKey,
+                    remotePublicKeyData: remoteKey
+                )
+                session = SessionCrypto(key: key, role: .client)
+                log.info("v1 debug handshake completed")
+            } catch {
+                closeLocked(reason: "key agreement failed", reconnect: true)
+            }
+            return
+        }
+        #endif
+
+        closeLocked(reason: "unsupported HELLO_ACK version", reconnect: true)
     }
 
     // MARK: - Receive
