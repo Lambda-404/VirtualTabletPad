@@ -199,3 +199,4 @@ Each feature gets its own branch and settings UI, with settings stored in a `Cod
 |------|--------|-----------|-------|
 | 0.1  | done   | agent/0.1-baseline-audit | Baseline audit complete; docs/PLAN_NOTES.md created |
 | 0.2  | done   | agent/0.2-ci | GitHub Actions CI workflow added (.github/workflows/ci.yml) |
+| 0.3  | done   | agent/0.3-lint-and-contrib | Added .swiftlint.yml, CONTRIBUTING.md, and bug_report.yml |

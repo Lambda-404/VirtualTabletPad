@@ -1,0 +1,86 @@
+name: Bug Report
+description: File a bug report for VirtualTabletPad
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report an issue! Please provide as much detail as possible.
+
+  - type: input
+    id: macos_version
+    attributes:
+      label: macOS Version
+      description: What version of macOS is running on your Mac? (e.g. macOS 14.5, macOS 15.0)
+      placeholder: "e.g. macOS 14.5 (Sonoma)"
+    validations:
+      required: true
+
+  - type: input
+    id: ipados_version
+    attributes:
+      label: iPadOS Version & Device
+      description: What model of iPad and iPadOS version are you using?
+      placeholder: "e.g. iPad Pro 13-inch (M4), iPadOS 17.5"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: connection_mode
+    attributes:
+      label: Connection Mode
+      description: How is your iPad connected to your Mac?
+      options:
+        - "Wi-Fi (Bonjour discovery)"
+        - "USB-C Cable (usbmuxd raw tunnel)"
+        - "Direct-IP / Cable fallback"
+    validations:
+      required: true
+
+  - type: input
+    id: app_used
+    attributes:
+      label: Creative Application Used
+      description: Which application were you using when the issue occurred?
+      placeholder: "e.g. Adobe Photoshop 2024, Krita 5.2, Clip Studio Paint, Blender"
+    validations:
+      required: false
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the Bug
+      description: A clear and concise description of what the problem is.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction_steps
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior.
+      placeholder: |
+        1. Open MacHost app
+        2. Launch iPadClient and connect via USB
+        3. Draw a stroke in Photoshop
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: Expected Behavior
+      description: A clear and concise description of what you expected to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs and Diagnostics
+      description: Please paste any relevant log output (e.g. Console.app logs filtered by subsystem com.vpad, or Tools/vpad_probe.py output).
+      render: shell
+    validations:
+      required: false
