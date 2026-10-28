@@ -60,6 +60,14 @@ public final class CryptoManager: @unchecked Sendable {
         return data
     }
 
+    /// 12-byte v2 nonce: 4-byte big-endian sessionID + 8-byte big-endian sequence number (§1.4).
+    public func nonceV2(sessionID: UInt32, seq: UInt64) -> Data {
+        var data = Data(capacity: VPadConstants.nonceSize)
+        data.appendUInt32BE(sessionID)
+        data.appendUInt64BE(seq)
+        return data
+    }
+
     public func parseNonce(_ envelope: Data) -> (direction: CryptoDirection, counter: UInt64)? {
         guard envelope.count >= VPadConstants.nonceSize,
               let rawDirection = envelope.readUInt32BE(at: 0),
@@ -70,7 +78,7 @@ public final class CryptoManager: @unchecked Sendable {
         return (direction, counter)
     }
 
-    /// Returns the fixed 56-byte UDP datagram (§3.2).
+    /// Returns the fixed 56-byte UDP datagram (§3.2 / v1).
     public func sealPacket(
         _ packet: VPadPacket,
         using key: SymmetricKey,
@@ -78,6 +86,27 @@ public final class CryptoManager: @unchecked Sendable {
         counter: UInt64
     ) throws -> Data {
         let nonceData = nonce(direction: direction, counter: counter)
+        do {
+            let nonce = try AES.GCM.Nonce(data: nonceData)
+            let sealed = try AES.GCM.seal(packet.toData(), using: key, nonce: nonce)
+            var envelope = Data(capacity: VPadConstants.udpEnvelopeSize)
+            envelope.append(nonceData)
+            envelope.append(sealed.ciphertext)
+            envelope.append(sealed.tag)
+            return envelope
+        } catch {
+            throw VPadCryptoError.sealFailed
+        }
+    }
+
+    /// Returns the fixed 56-byte v2 UDP datagram: `sessionID (4B) | seq (8B) | ciphertext (28B) | tag (16B)`.
+    public func sealPacketV2(
+        _ packet: VPadPacket,
+        sessionID: UInt32,
+        seq: UInt64,
+        using key: SymmetricKey
+    ) throws -> Data {
+        let nonceData = nonceV2(sessionID: sessionID, seq: seq)
         do {
             let nonce = try AES.GCM.Nonce(data: nonceData)
             let sealed = try AES.GCM.seal(packet.toData(), using: key, nonce: nonce)
@@ -114,6 +143,37 @@ public final class CryptoManager: @unchecked Sendable {
                 throw VPadCryptoError.invalidPacket
             }
             return packet
+        } catch let error as VPadCryptoError {
+            throw error
+        } catch {
+            throw VPadCryptoError.authenticationFailed
+        }
+    }
+
+    public func openPacketV2(
+        _ envelope: Data,
+        expectedSessionID: UInt32,
+        using key: SymmetricKey
+    ) throws -> (seq: UInt64, packet: VPadPacket) {
+        guard envelope.count == VPadConstants.udpEnvelopeSize else {
+            throw VPadCryptoError.invalidEnvelope
+        }
+        guard let sessionID = envelope.readUInt32BE(at: 0),
+              sessionID == expectedSessionID,
+              let seq = envelope.readUInt64BE(at: 4) else {
+            throw VPadCryptoError.invalidEnvelope
+        }
+        let nonceData = Data(envelope.prefix(VPadConstants.nonceSize))
+        let ciphertext = Data(envelope[12..<40])
+        let tag = Data(envelope[40..<56])
+        do {
+            let nonce = try AES.GCM.Nonce(data: nonceData)
+            let box = try AES.GCM.SealedBox(nonce: nonce, ciphertext: ciphertext, tag: tag)
+            let plaintext = try AES.GCM.open(box, using: key)
+            guard let packet = VPadPacket.fromData(plaintext) else {
+                throw VPadCryptoError.invalidPacket
+            }
+            return (seq, packet)
         } catch let error as VPadCryptoError {
             throw error
         } catch {
@@ -186,10 +246,13 @@ public enum SessionRole: Sendable, Equatable {
 /// Per-session hot-path state: key, direction counters and anti-replay state.
 /// Synchronous by design so the UDP receive loop never needs an actor hop.
 public final class SessionCrypto: @unchecked Sendable {
-    private let key: SymmetricKey
+    public let sessionID: UInt32?
+    private let sendKey: SymmetricKey
+    private let receiveKey: SymmetricKey
     private let role: SessionRole
     private let lock = NSLock()
     private let crypto = CryptoManager.shared
+    private var replayWindow = ReplayWindow()
 
     private var udpSendCounter: UInt64 = 0
     private var tcpSendCounter: UInt64 = 0
@@ -198,9 +261,41 @@ public final class SessionCrypto: @unchecked Sendable {
     private var received: UInt64 = 0
     private var dropped: UInt64 = 0
 
+    /// V1 legacy constructor (symmetric shared key).
     public init(key: SymmetricKey, role: SessionRole = .host) {
-        self.key = key
+        self.sessionID = nil
+        self.sendKey = key
+        self.receiveKey = key
         self.role = role
+    }
+
+    /// V2 constructor (HandshakeSession with directional keys, sessionID, and ReplayWindow).
+    public init(session: HandshakeSession, role: SessionRole) {
+        self.sessionID = session.sessionID
+        self.role = role
+        if role == .client {
+            self.sendKey = session.clientToHostKey
+            self.receiveKey = session.hostToClientKey
+        } else {
+            self.sendKey = session.hostToClientKey
+            self.receiveKey = session.clientToHostKey
+        }
+    }
+
+    public var isV2: Bool {
+        sessionID != nil
+    }
+
+    public var isNearRekeyThreshold: Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        return replayWindow.isNearOverflow || udpSendCounter >= ReplayWindow.rekeyThreshold
+    }
+
+    public var highestSequenceNumber: UInt64? {
+        lock.lock()
+        defer { lock.unlock() }
+        return replayWindow.highestSequenceNumber ?? lastUDPCounter
     }
 
     private var udpSendDirection: CryptoDirection {
@@ -225,50 +320,91 @@ public final class SessionCrypto: @unchecked Sendable {
         lock.lock()
         defer { lock.unlock() }
         let counter = udpSendCounter
-        guard let envelope = try? crypto.sealPacket(
-            packet,
-            using: key,
-            direction: udpSendDirection,
-            counter: counter
-        ) else {
-            return nil
+        if let sessionID {
+            guard let envelope = try? crypto.sealPacketV2(
+                packet,
+                sessionID: sessionID,
+                seq: counter,
+                using: sendKey
+            ) else {
+                return nil
+            }
+            udpSendCounter += 1
+            return envelope
+        } else {
+            guard let envelope = try? crypto.sealPacket(
+                packet,
+                using: sendKey,
+                direction: udpSendDirection,
+                counter: counter
+            ) else {
+                return nil
+            }
+            udpSendCounter += 1
+            return envelope
         }
-        udpSendCounter += 1
-        return envelope
     }
 
     public func openUDP(_ envelope: Data) -> VPadPacket? {
         lock.lock()
         defer { lock.unlock() }
 
-        guard envelope.count == VPadConstants.udpEnvelopeSize,
-              let metadata = crypto.parseNonce(envelope),
-              metadata.direction == udpReceiveDirection else {
-            dropped += 1
-            return nil
-        }
+        if let sessionID {
+            guard envelope.count == VPadConstants.udpEnvelopeSize,
+                  let id = envelope.readUInt32BE(at: 0),
+                  id == sessionID,
+                  let seq = envelope.readUInt64BE(at: 4) else {
+                dropped += 1
+                return nil
+            }
 
-        if let last = lastUDPCounter, metadata.counter <= last {
-            dropped += 1
-            return nil
-        }
+            guard replayWindow.checkAndAdvance(seq) else {
+                dropped += 1
+                return nil
+            }
 
-        guard let packet = try? crypto.openPacket(
-            envelope,
-            using: key,
-            direction: udpReceiveDirection,
-            counter: metadata.counter
-        ) else {
-            dropped += 1
-            return nil
-        }
+            guard let (_, packet) = try? crypto.openPacketV2(
+                envelope,
+                expectedSessionID: sessionID,
+                using: receiveKey
+            ) else {
+                dropped += 1
+                return nil
+            }
 
-        if let last = lastUDPCounter, metadata.counter > last + 1 {
-            dropped += metadata.counter - last - 1
+            lastUDPCounter = seq
+            received += 1
+            return packet
+        } else {
+            guard envelope.count == VPadConstants.udpEnvelopeSize,
+                  let metadata = crypto.parseNonce(envelope),
+                  metadata.direction == udpReceiveDirection else {
+                dropped += 1
+                return nil
+            }
+
+            if let last = lastUDPCounter, metadata.counter <= last {
+                dropped += 1
+                return nil
+            }
+
+            guard let packet = try? crypto.openPacket(
+                envelope,
+                using: receiveKey,
+                direction: udpReceiveDirection,
+                counter: metadata.counter
+            ) else {
+                dropped += 1
+                return nil
+            }
+
+            if let last = lastUDPCounter, metadata.counter > last + 1 {
+                dropped += metadata.counter - last - 1
+            }
+            lastUDPCounter = metadata.counter
+            received += 1
+            return packet
         }
-        lastUDPCounter = metadata.counter
-        received += 1
-        return packet
     }
 
     // MARK: TCP
@@ -279,7 +415,7 @@ public final class SessionCrypto: @unchecked Sendable {
         let counter = tcpSendCounter
         guard let encrypted = try? crypto.sealTCPPayload(
             payload,
-            using: key,
+            using: sendKey,
             direction: tcpSendDirection,
             counter: counter
         ) else {
@@ -295,7 +431,7 @@ public final class SessionCrypto: @unchecked Sendable {
         let counter = tcpReceiveCounter
         guard let plaintext = try? crypto.openTCPPayload(
             payload,
-            using: key,
+            using: receiveKey,
             direction: tcpReceiveDirection,
             counter: counter
         ) else {

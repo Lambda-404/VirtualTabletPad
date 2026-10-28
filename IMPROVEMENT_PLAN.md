@@ -203,3 +203,4 @@ Each feature gets its own branch and settings UI, with settings stored in a `Cod
 | 1.1  | done   | agent/1.1-threat-model | Threat model documented in docs/security.md |
 | 1.2  | done   | agent/1.2-identity-keys | Added IdentityKey, KeyStore protocols, InMemory/Keychain stores, unit tests |
 | 1.3  | done   | agent/1.3-authenticated-handshake | Mutual authenticated handshake, docs/protocol.md, directional HKDF keys |
+| 1.4  | done   | agent/1.4-session-crypto-replay | 56B V2 UDP datagram, ReplayWindow sliding bitmap, anti-replay tests |
