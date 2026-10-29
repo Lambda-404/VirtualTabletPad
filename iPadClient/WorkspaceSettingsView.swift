@@ -229,6 +229,24 @@ struct WorkspaceSettingsView: View {
                 }
                 .pickerStyle(.inline)
 
+                if pencil.squeezeMode == .customAction {
+                    Picker("Squeeze Binding", selection: $pencil.gestureBindings.squeezeAction) {
+                        Text("Escape").tag(Action.key(KeyCombo(keyCode: 53)))
+                        Text("Space / Pan").tag(Action.key(KeyCombo(keyCode: 49)))
+                        Text("Undo (⌘Z)").tag(Action.key(KeyCombo(keyCode: 6, modifiers: 0x0100)))
+                        Text("Eraser").tag(Action.toggleTool("eraser"))
+                        Text("Play / Pause").tag(Action.systemAction(.playPause))
+                    }
+                }
+
+                Picker("Double-tap", selection: $pencil.gestureBindings.doubleTapAction) {
+                    Text("Eraser").tag(Action.toggleTool("eraser"))
+                    Text("Brush").tag(Action.toggleTool("brush"))
+                    Text("Undo (⌘Z)").tag(Action.key(KeyCombo(keyCode: 6, modifiers: 0x0100)))
+                    Text("Space / Pan").tag(Action.key(KeyCombo(keyCode: 49)))
+                    Text("Tab").tag(Action.key(KeyCombo(keyCode: 48)))
+                }
+
                 Text(pencil.lastEventMessage ?? "Last Pencil interaction: —")
                     .font(.system(size: 12, design: .rounded))
                     .foregroundStyle(.secondary)

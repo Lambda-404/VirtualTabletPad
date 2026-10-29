@@ -5,13 +5,15 @@ import VPadProtocol
 enum SqueezeMode: String, CaseIterable, Identifiable {
     case macRightClick
     case radialPalette
+    case customAction
 
     var id: String { rawValue }
 
     var title: String {
         switch self {
-        case .macRightClick: return "Mac Right-Click HUD"
-        case .radialPalette: return "Local Radial Palette"
+        case .macRightClick: return "Mac Right-Click"
+        case .radialPalette: return "Radial Palette"
+        case .customAction: return "Custom Action"
         }
     }
 }
@@ -20,6 +22,7 @@ enum SqueezeMode: String, CaseIterable, Identifiable {
 @MainActor
 final class PencilProManager: NSObject, ObservableObject, UIPencilInteractionDelegate {
     @Published var squeezeMode: SqueezeMode = .macRightClick
+    @Published var gestureBindings: PencilGestureBindings = PencilGestureBindings()
     @Published var radialMenuCenter: CGPoint?
     @Published private(set) var lastEventMessage: String?
 
@@ -47,10 +50,17 @@ final class PencilProManager: NSObject, ObservableObject, UIPencilInteractionDel
 
     func pencilInteraction(_ interaction: UIPencilInteraction, didReceiveTap tap: UIPencilInteraction.Tap) {
         NSLog("VPAD_PENCIL tap")
-        showEvent("Double-tap → Eraser (E)")
         let location = tap.hoverPose?.location ?? .zero
         feedback?.pathCompleted(at: location)
-        UDPClient.shared.send(VPadPacket.stylusDoubleTap(modifiers: ModifierState.shared.snapshot()))
+
+        switch gestureBindings.doubleTapAction {
+        case .toggleTool("eraser"):
+            showEvent("Double-tap → Eraser (E)")
+            UDPClient.shared.send(VPadPacket.stylusDoubleTap(modifiers: ModifierState.shared.snapshot()))
+        default:
+            showEvent("Double-tap → \(gestureBindings.doubleTapAction.title)")
+            execute(gestureBindings.doubleTapAction)
+        }
     }
 
     func pencilInteraction(_ interaction: UIPencilInteraction, didReceiveSqueeze squeeze: UIPencilInteraction.Squeeze) {
@@ -81,6 +91,37 @@ final class PencilProManager: NSObject, ObservableObject, UIPencilInteractionDel
         case .radialPalette:
             showEvent("Squeeze → Radial palette")
             radialMenuCenter = location
+        case .customAction:
+            showEvent("Squeeze → \(gestureBindings.squeezeAction.title)")
+            execute(gestureBindings.squeezeAction)
+        }
+    }
+
+    private func execute(_ action: Action) {
+        switch action {
+        case .key(let combo):
+            UDPClient.shared.send(VPadPacket.keyShortcut(keyCode: combo.keyCode, modifiers: combo.modifiers))
+        case .systemAction(let sys):
+            UDPClient.shared.send(VPadPacket.systemAction(sys))
+        case .macro(let steps):
+            Task { @MainActor in
+                for step in steps {
+                    switch step {
+                    case .keyDown(let code, let mods):
+                        UDPClient.shared.send(VPadPacket.keyboardPress(keyCode: code, phase: .began, modifiers: mods))
+                    case .keyUp(let code):
+                        UDPClient.shared.send(VPadPacket.keyboardPress(keyCode: code, phase: .ended, modifiers: 0))
+                    case .delayMs(let ms):
+                        try? await Task.sleep(nanoseconds: UInt64(ms) * 1_000_000)
+                    }
+                }
+            }
+        case .toggleTool(let tool):
+            if tool.lowercased() == "eraser" {
+                UDPClient.shared.send(VPadPacket.stylusDoubleTap(modifiers: ModifierState.shared.snapshot()))
+            } else if tool.lowercased() == "brush" {
+                UDPClient.shared.send(VPadPacket.keyShortcut(keyCode: 11, modifiers: 0))
+            }
         }
     }
 

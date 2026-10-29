@@ -8,19 +8,25 @@ public struct Profile: Identifiable, Sendable, Codable, Equatable {
     public var pressureCurve: PressureCurveConfiguration
     public var areaMapping: AreaMappingConfiguration
     public var shortcutLayout: [UInt16]
+    public var pencilGestures: PencilGestureBindings
+    public var functionKeyActions: [Int: Action]
 
     public init(
         bundleIdentifier: String,
         name: String,
         pressureCurve: PressureCurveConfiguration = PressureCurveConfiguration(),
         areaMapping: AreaMappingConfiguration = AreaMappingConfiguration(),
-        shortcutLayout: [UInt16] = []
+        shortcutLayout: [UInt16] = [],
+        pencilGestures: PencilGestureBindings = PencilGestureBindings(),
+        functionKeyActions: [Int: Action] = [:]
     ) {
         self.bundleIdentifier = bundleIdentifier
         self.name = name
         self.pressureCurve = pressureCurve
         self.areaMapping = areaMapping
         self.shortcutLayout = shortcutLayout
+        self.pencilGestures = pencilGestures
+        self.functionKeyActions = functionKeyActions
     }
 
     public static let `default` = Profile(
@@ -28,7 +34,9 @@ public struct Profile: Identifiable, Sendable, Codable, Equatable {
         name: "Default",
         pressureCurve: PressureCurveConfiguration(preset: .natural),
         areaMapping: AreaMappingConfiguration(),
-        shortcutLayout: [0, 1, 2, 3]
+        shortcutLayout: [0, 1, 2, 3],
+        pencilGestures: PencilGestureBindings(),
+        functionKeyActions: [:]
     )
 
     public static let photoshop = Profile(
@@ -36,7 +44,12 @@ public struct Profile: Identifiable, Sendable, Codable, Equatable {
         name: "Adobe Photoshop",
         pressureCurve: PressureCurveConfiguration(preset: .soft),
         areaMapping: AreaMappingConfiguration(lockAspectRatio: true),
-        shortcutLayout: [53, 6, 7, 8]
+        shortcutLayout: [53, 6, 7, 8],
+        pencilGestures: PencilGestureBindings(
+            squeezeAction: .key(KeyCombo(keyCode: 49)), // Space / Hand tool
+            doubleTapAction: .toggleTool("eraser")
+        ),
+        functionKeyActions: [1: .key(KeyCombo(keyCode: 6, modifiers: 0x0100))] // Cmd+Z
     )
 
     public static let krita = Profile(
@@ -44,7 +57,12 @@ public struct Profile: Identifiable, Sendable, Codable, Equatable {
         name: "Krita",
         pressureCurve: PressureCurveConfiguration(preset: .natural),
         areaMapping: AreaMappingConfiguration(lockAspectRatio: true),
-        shortcutLayout: [49, 12, 13, 14]
+        shortcutLayout: [49, 12, 13, 14],
+        pencilGestures: PencilGestureBindings(
+            squeezeAction: .key(KeyCombo(keyCode: 49)), // Space / Pan
+            doubleTapAction: .toggleTool("eraser")
+        ),
+        functionKeyActions: [1: .key(KeyCombo(keyCode: 6, modifiers: 0x0100))] // Cmd+Z
     )
 
     public static let blender = Profile(
@@ -52,7 +70,12 @@ public struct Profile: Identifiable, Sendable, Codable, Equatable {
         name: "Blender",
         pressureCurve: PressureCurveConfiguration(preset: .hard),
         areaMapping: AreaMappingConfiguration(),
-        shortcutLayout: [49, 56, 55, 58]
+        shortcutLayout: [49, 56, 55, 58],
+        pencilGestures: PencilGestureBindings(
+            squeezeAction: .key(KeyCombo(keyCode: 53)), // Esc
+            doubleTapAction: .key(KeyCombo(keyCode: 48)) // Tab
+        ),
+        functionKeyActions: [1: .key(KeyCombo(keyCode: 6, modifiers: 0x0100))] // Cmd+Z
     )
 
     public static let defaultProfiles: [Profile] = [

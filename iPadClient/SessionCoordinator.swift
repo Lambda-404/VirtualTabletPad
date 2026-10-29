@@ -208,12 +208,39 @@ final class SessionCoordinator: ObservableObject {
         UDPClient.shared.send(VPadPacket.keyShortcut(keyCode: keyCode, modifiers: modifiers))
     }
 
+    func sendKeyboardPress(keyCode: UInt16, phase: Phase, modifiers: UInt16) {
+        UDPClient.shared.send(VPadPacket.keyboardPress(keyCode: keyCode, phase: phase, modifiers: modifiers))
+    }
+
     func sendFunctionKey(_ key: FunctionKey) {
-        sendShortcut(keyCode: key.virtualKeyCode, modifiers: UInt16(key.modifierMask.rawValue))
+        if let custom = actionForFunctionKey(key) {
+            executeAction(custom)
+        } else {
+            sendShortcut(keyCode: key.virtualKeyCode, modifiers: UInt16(key.modifierMask.rawValue))
+        }
     }
 
     func sendSystemAction(_ action: SystemAction) {
         UDPClient.shared.send(VPadPacket.systemAction(action))
+    }
+
+    func selectTool(_ tool: String) {
+        switch tool.lowercased() {
+        case "eraser":
+            sendShortcut(keyCode: 14, modifiers: 0) // 'E'
+        case "brush":
+            sendShortcut(keyCode: 11, modifiers: 0) // 'B'
+        default:
+            break
+        }
+    }
+
+    func executeAction(_ action: Action) {
+        ActionRunner.execute(action, via: self)
+    }
+
+    func actionForFunctionKey(_ key: FunctionKey) -> Action? {
+        activeProfile.functionKeyActions[key.rawValue]
     }
 
     private func handle(_ event: TCPFileClient.Event) {
@@ -322,3 +349,5 @@ extension FileStatus {
         }
     }
 }
+
+extension SessionCoordinator: ActionDispatcher {}

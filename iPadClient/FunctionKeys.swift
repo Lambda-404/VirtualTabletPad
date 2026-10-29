@@ -83,21 +83,34 @@ struct FunctionPadView: View {
     }
 
     private func functionButton(_ key: FunctionKey) -> some View {
-        Button {
-            coordinator.sendFunctionKey(key)
+        let customAction = coordinator.actionForFunctionKey(key)
+        return Button {
+            if let customAction {
+                coordinator.executeAction(customAction)
+            } else {
+                coordinator.sendFunctionKey(key)
+            }
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
         } label: {
-            Text(key.title)
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
-                .frame(maxWidth: .infinity, minHeight: 42)
-                .background(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(Color.white.opacity(0.085))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .stroke(Color.white.opacity(0.07), lineWidth: 1)
-                )
+            VStack(spacing: 2) {
+                Text(key.title)
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                if let customAction {
+                    Text(customAction.title)
+                        .font(.system(size: 9, weight: .medium, design: .rounded))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+            }
+            .frame(maxWidth: .infinity, minHeight: 42)
+            .background(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(Color.white.opacity(0.085))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .stroke(Color.white.opacity(0.07), lineWidth: 1)
+            )
         }
         .buttonStyle(.plain)
     }

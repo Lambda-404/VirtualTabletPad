@@ -221,3 +221,4 @@ Each feature gets its own branch and settings UI, with settings stored in a `Cod
 | 4.1  | done   | agent/4.1-area-mapping | MappingRegion, AreaMappingConfiguration (multi-display, rotation, 4:3 lock, left-handed), UI & tests |
 | 4.2  | done   | agent/4.2-pressure-curve-editor | Cubic Bézier PressureCurveConfiguration, 256-entry O(1) LUT, PressureCurveEditorView, tests |
 | 4.3  | done   | agent/4.3-per-app-profiles | Profile, ProfileStore, activeApplication control frame, frontmost app sync, UI & tests |
+| 4.4  | done   | agent/4.4-custom-actions | Action enum (key, systemAction, macro, toggleTool), Pencil gestures & F-strip bindings, tests |

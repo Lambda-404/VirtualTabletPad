@@ -51,7 +51,7 @@ public enum Phase: UInt8, Sendable, CaseIterable {
     case cancelled = 0x03
 }
 
-public enum SystemAction: UInt8, Sendable, CaseIterable {
+public enum SystemAction: UInt8, Sendable, Codable, CaseIterable {
     case brightnessDown = 0
     case brightnessUp = 1
     case volumeDown = 2
