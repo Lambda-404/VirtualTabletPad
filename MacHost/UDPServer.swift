@@ -157,7 +157,7 @@ final class UDPServer: @unchecked Sendable {
         connection.receiveMessage { [weak self] data, _, _, error in
             guard let self else { return }
             if let data {
-                self.handleDatagram(data)
+                self.handleDatagram(data, on: connection)
             }
             if let error {
                 self.log.debug("UDP receive ended: \(error.localizedDescription, privacy: .public)")
@@ -168,7 +168,7 @@ final class UDPServer: @unchecked Sendable {
         }
     }
 
-    private func handleDatagram(_ data: Data) {
+    private func handleDatagram(_ data: Data, on connection: NWConnection) {
         sessionLock.lock()
         let currentSession = session
         sessionLock.unlock()
@@ -179,6 +179,14 @@ final class UDPServer: @unchecked Sendable {
             return
         }
         EventInjector.shared.inject(packet)
+
+        // Task 3.1: If this is a discrete state event, return a cumulative ACK packet
+        if packet.isStateEvent, let highestSeq = currentSession.highestSequenceNumber {
+            let ackPacket = VPadPacket.hostAck(cumulativeSeq: highestSeq)
+            if let ackEnvelope = currentSession.sealUDP(ackPacket) {
+                connection.send(content: ackEnvelope, completion: .idempotent)
+            }
+        }
     }
 
     private func removeConnection(_ connection: NWConnection) {

@@ -317,6 +317,10 @@ public final class SessionCrypto: @unchecked Sendable {
     // MARK: UDP
 
     public func sealUDP(_ packet: VPadPacket) -> Data? {
+        sealUDPWithSeq(packet)?.envelope
+    }
+
+    public func sealUDPWithSeq(_ packet: VPadPacket) -> (envelope: Data, seq: UInt64)? {
         lock.lock()
         defer { lock.unlock() }
         let counter = udpSendCounter
@@ -330,7 +334,7 @@ public final class SessionCrypto: @unchecked Sendable {
                 return nil
             }
             udpSendCounter += 1
-            return envelope
+            return (envelope, counter)
         } else {
             guard let envelope = try? crypto.sealPacket(
                 packet,
@@ -341,7 +345,7 @@ public final class SessionCrypto: @unchecked Sendable {
                 return nil
             }
             udpSendCounter += 1
-            return envelope
+            return (envelope, counter)
         }
     }
 

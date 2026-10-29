@@ -15,6 +15,9 @@ public enum EventType: UInt8, Sendable, CaseIterable {
     case keyboardPress = 0x21
     case systemAction = 0x22
     case customGesture = 0x40
+    case hostAck = 0x50
+    case ping = 0x51
+    case pong = 0x52
 }
 
 public enum Phase: UInt8, Sendable, CaseIterable {

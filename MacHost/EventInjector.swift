@@ -116,6 +116,9 @@ final class EventInjector: @unchecked Sendable {
                 return
             }
             GestureMapper.shared.perform(action)
+        case .hostAck, .ping, .pong:
+            // Control plane packets are processed at the network layer and never injected as OS events.
+            break
         }
     }
 

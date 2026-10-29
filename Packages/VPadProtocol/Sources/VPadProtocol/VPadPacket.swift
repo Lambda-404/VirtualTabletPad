@@ -213,6 +213,51 @@ public struct VPadPacket: Equatable, Sendable {
         )
     }
 
+    // MARK: - Reliable State & Control Factories (§3.1 / §3.5)
+
+    /// True if the packet represents a discrete state transition (press, release, proximity, modifier)
+    /// rather than a continuous stream sample (movement or drag sample).
+    public var isStateEvent: Bool {
+        guard let eventType = EventType(rawValue: type) else { return false }
+        switch eventType {
+        case .stylusStroke:
+            return phase == Phase.began.rawValue || phase == Phase.ended.rawValue || phase == Phase.cancelled.rawValue
+        case .trackpadClick:
+            return phase == Phase.began.rawValue || phase == Phase.ended.rawValue || phase == Phase.cancelled.rawValue
+        case .stylusProximity, .stylusSqueeze, .stylusDoubleTap:
+            return true
+        case .keyShortcut, .keyboardPress, .systemAction, .customGesture:
+            return true
+        case .trackpadMove, .trackpadScroll, .stylusHover:
+            return false
+        case .hostAck, .ping, .pong:
+            return false
+        }
+    }
+
+    /// Creates a host-to-client cumulative acknowledgement packet.
+    public static func hostAck(cumulativeSeq: UInt64) -> VPadPacket {
+        let low = UInt32(cumulativeSeq & 0xFFFF_FFFF)
+        let high = UInt32((cumulativeSeq >> 32) & 0xFFFF_FFFF)
+        let xVal = Float32(bitPattern: low)
+        let yVal = Float32(bitPattern: high)
+        return VPadPacket(
+            type: EventType.hostAck.rawValue,
+            phase: 0,
+            modifiers: 0,
+            x: xVal,
+            y: yVal
+        )
+    }
+
+    /// Decodes the cumulative sequence number from a host-to-client acknowledgement packet.
+    public var ackSequenceNumber: UInt64? {
+        guard type == EventType.hostAck.rawValue else { return nil }
+        let low = x.bitPattern
+        let high = y.bitPattern
+        return UInt64(low) | (UInt64(high) << 32)
+    }
+
     // MARK: - Helpers
 
     private static func finite(_ value: Float32, fallback: Float32 = 0) -> Float32 {

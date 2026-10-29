@@ -21,6 +21,8 @@ final class UDPClient: @unchecked Sendable {
     private var session: SessionCrypto?
     private var usbSender: (@Sendable (VPadPacket) -> Void)?
     private var pendingSends = 0
+    private let resendEngine = StateResendEngine()
+    private var resendTimer: DispatchSourceTimer?
 
     private init() {}
 
@@ -50,6 +52,9 @@ final class UDPClient: @unchecked Sendable {
             guard let self else { return }
             self.isStarted = false
             self.browserGeneration += 1
+            self.resendTimer?.cancel()
+            self.resendTimer = nil
+            self.resendEngine.reset()
             self.browser?.cancel()
             self.browser = nil
             self.connection?.cancel()
@@ -97,9 +102,13 @@ final class UDPClient: @unchecked Sendable {
                 self.finishSend()
                 return
             }
-            guard let envelope = session.sealUDP(packet) else {
+            guard let (envelope, seq) = session.sealUDPWithSeq(packet) else {
                 self.finishSend()
                 return
+            }
+            if packet.isStateEvent {
+                self.resendEngine.onPacketSent(packet, seq: seq)
+                self.ensureResendTimerRunning()
             }
             connection.send(content: envelope, completion: .contentProcessed { [weak self] error in
                 if let error {
@@ -227,6 +236,7 @@ final class UDPClient: @unchecked Sendable {
             switch state {
             case .ready:
                 self.log.info("UDP ready to \(String(describing: endpoint), privacy: .public)")
+                self.receiveNext(on: connection)
             case .failed(let error):
                 self.log.error("UDP connection failed: \(error.localizedDescription, privacy: .public)")
                 self.connection = nil
@@ -254,6 +264,57 @@ final class UDPClient: @unchecked Sendable {
             } else {
                 self.connectDirectLocked()
             }
+        }
+    }
+
+    // MARK: - Reliable State Resends & ACKs (§3.1)
+
+    private func receiveNext(on connection: NWConnection) {
+        connection.receiveMessage { [weak self] data, _, _, error in
+            guard let self, self.connection === connection else { return }
+            if let data {
+                self.sessionLock.lock()
+                let currentSession = self.session
+                self.sessionLock.unlock()
+
+                if let currentSession, let packet = currentSession.openUDP(data) {
+                    if packet.type == EventType.hostAck.rawValue, let ackSeq = packet.ackSequenceNumber {
+                        self.resendEngine.onAckReceived(ackSeq)
+                    }
+                }
+            }
+            if error == nil {
+                self.receiveNext(on: connection)
+            }
+        }
+    }
+
+    private func ensureResendTimerRunning() {
+        guard resendTimer == nil else { return }
+        let timer = DispatchSource.makeTimerSource(queue: queue)
+        timer.schedule(deadline: .now() + 0.015, repeating: 0.015)
+        timer.setEventHandler { [weak self] in
+            self?.checkPendingResends()
+        }
+        timer.resume()
+        resendTimer = timer
+    }
+
+    private func checkPendingResends() {
+        guard let connection else { return }
+        sessionLock.lock()
+        let currentSession = session
+        sessionLock.unlock()
+        guard let currentSession else { return }
+
+        if let resend = resendEngine.nextResendPacket() {
+            if let (envelope, _) = currentSession.sealUDPWithSeq(resend) {
+                connection.send(content: envelope, completion: .idempotent)
+            }
+        }
+        if resendEngine.pendingCount == 0 {
+            resendTimer?.cancel()
+            resendTimer = nil
         }
     }
 }
