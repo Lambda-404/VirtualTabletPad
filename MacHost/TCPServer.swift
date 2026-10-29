@@ -79,6 +79,9 @@ private final class TCPControlConnection: @unchecked Sendable {
         handshakeWorkItem = workItem
         queue.asyncAfter(deadline: .now() + 5, execute: workItem)
         log.info("accepted control connection from \(self.peerDescription, privacy: .public)")
+        Task { @MainActor in
+            HostStatus.shared.setConnectionState(.connecting)
+        }
     }
 
     func cancel() {
@@ -149,6 +152,9 @@ private final class TCPControlConnection: @unchecked Sendable {
     // MARK: Handshake
 
     private func handleHello(_ frame: VPadFrame) {
+        Task { @MainActor in
+            HostStatus.shared.setConnectionState(.handshaking)
+        }
         guard let version = frame.body.first else {
             failProtocol(.malformedFrame)
             return

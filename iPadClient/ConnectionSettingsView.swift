@@ -96,16 +96,7 @@ struct ConnectionSettingsView: View {
                     if coordinator.transportMode == .direct {
                         LabeledContent("Mac IP", value: coordinator.manualHost)
                     }
-                    switch coordinator.connectionState {
-                    case .connected:
-                        LabeledContent("Link", value: coordinator.peerName ?? "Connected")
-                    case .searching:
-                        LabeledContent("Link", value: "Searching…")
-                    case .failed(let message):
-                        LabeledContent("Link", value: message)
-                    case .idle:
-                        LabeledContent("Link", value: "Idle")
-                    }
+                    LabeledContent("Status", value: coordinator.connectionState.title)
                     if let latency = coordinator.latencyMilliseconds {
                         LabeledContent("Ping", value: String(format: "%.1f ms", latency))
                     }

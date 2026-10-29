@@ -12,7 +12,9 @@ final class TCPFileClient: @unchecked Sendable {
 
     enum Event: Sendable {
         case connecting
+        case handshaking
         case connected(peer: String)
+        case reconnecting(reason: String)
         case remoteAddress(String)
         case disconnected(reason: String)
         case latency(milliseconds: Double)
@@ -329,6 +331,7 @@ final class TCPFileClient: @unchecked Sendable {
         let deviceName = currentDeviceName()
 
         do {
+            emit(.handshaking)
             let (payload, state) = try VPadHandshake.initiateClient(
                 clientIdentity: clientIdentity,
                 pairingToken: pairingToken,
@@ -782,7 +785,11 @@ final class TCPFileClient: @unchecked Sendable {
             await ClientSessionState.shared.disarm()
         }
         if wasReady {
-            emit(.disconnected(reason: reason))
+            if reconnect && isStarted {
+                emit(.reconnecting(reason: reason))
+            } else {
+                emit(.disconnected(reason: reason))
+            }
         }
         log.info("TCP client closed: \(reason, privacy: .public)")
 

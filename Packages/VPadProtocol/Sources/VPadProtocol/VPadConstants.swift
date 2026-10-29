@@ -26,6 +26,24 @@ public enum HeartbeatButtonMask {
     public static let rightButton: UInt8 = 0x02
 }
 
+public enum VPadConnectionState: String, Sendable, CaseIterable, Equatable {
+    case disconnected
+    case connecting
+    case handshaking
+    case active
+    case reconnecting
+
+    public var title: String {
+        switch self {
+        case .disconnected: return "Disconnected"
+        case .connecting: return "Connecting"
+        case .handshaking: return "Authenticating"
+        case .active: return "Connected"
+        case .reconnecting: return "Reconnecting"
+        }
+    }
+}
+
 public enum Phase: UInt8, Sendable, CaseIterable {
     case began = 0x00
     case moved = 0x01

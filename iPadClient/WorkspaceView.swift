@@ -194,19 +194,20 @@ struct LegacyWorkspaceView: View {
 
     private var statusColor: Color {
         switch coordinator.connectionState {
-        case .connected: return .green
-        case .searching: return .orange
-        case .failed: return .red
-        case .idle: return .gray
+        case .active: return .green
+        case .handshaking: return .blue
+        case .connecting, .reconnecting: return .orange
+        case .disconnected: return .gray
         }
     }
 
     private var statusText: String {
         switch coordinator.connectionState {
-        case .connected: return "Mac connected"
-        case .searching: return "Searching for Mac…"
-        case .failed(let reason): return "Connection failed: \(reason)"
-        case .idle: return "Idle"
+        case .active: return coordinator.peerName.map { "Connected to \($0)" } ?? "Connected"
+        case .handshaking: return "Authenticating…"
+        case .connecting: return "Connecting…"
+        case .reconnecting: return "Reconnecting…"
+        case .disconnected: return "Disconnected"
         }
     }
 

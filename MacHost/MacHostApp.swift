@@ -57,7 +57,7 @@ final class HostStatus: ObservableObject {
     @Published var accessibilityGranted = false
     @Published var isTCPListening = false
     @Published var isUDPListening = false
-    @Published var isConnected = false
+    @Published var connectionState: VPadConnectionState = .disconnected
     @Published var peerDescription: String?
     @Published var receivedPackets: UInt64 = 0
     @Published var droppedPackets: UInt64 = 0
@@ -66,6 +66,10 @@ final class HostStatus: ObservableObject {
     @Published var lastUploadStatus: FileStatus?
     @Published var lastError: String?
     @Published var pairedDevices: [PairedDevice] = []
+
+    var isConnected: Bool {
+        connectionState == .active
+    }
 
     private init() {
         refreshPairedDevices()
@@ -81,15 +85,22 @@ final class HostStatus: ObservableObject {
         lastUDPCounter = stats.lastUDPCounter
     }
 
+    func setConnectionState(_ state: VPadConnectionState, peer: String? = nil) {
+        connectionState = state
+        if state == .active {
+            peerDescription = peer
+            lastError = nil
+        } else if state == .disconnected {
+            peerDescription = nil
+        }
+    }
+
     func markConnected(peer: String?) {
-        isConnected = true
-        peerDescription = peer
-        lastError = nil
+        setConnectionState(.active, peer: peer)
     }
 
     func markDisconnected() {
-        isConnected = false
-        peerDescription = nil
+        setConnectionState(.disconnected)
     }
 
     func recordUpload(name: String, status: FileStatus) {
@@ -184,8 +195,13 @@ private struct MenuBarLabel: View {
     }
 
     private var indicatorColor: Color {
-        if status.isConnected { return .green }
-        return accessibility.isTrusted ? .orange : .red
+        guard accessibility.isTrusted else { return .red }
+        switch status.connectionState {
+        case .active: return .green
+        case .handshaking: return .blue
+        case .connecting, .reconnecting: return .orange
+        case .disconnected: return .secondary
+        }
     }
 }
 
@@ -194,14 +210,28 @@ private struct HostMenuView: View {
     @ObservedObject var accessibility: AccessibilityManager
     @Environment(\.openWindow) private var openWindow
 
-    var body: some View {
-        Text(status.isConnected ? "Connected to iPad" : "Waiting for iPad")
-            .font(.headline)
+    private var indicatorColor: Color {
+        guard accessibility.isTrusted else { return .red }
+        switch status.connectionState {
+        case .active: return .green
+        case .handshaking: return .blue
+        case .connecting, .reconnecting: return .orange
+        case .disconnected: return .secondary
+        }
+    }
 
-        if let peer = status.peerDescription {
-            Text(peer)
-                .font(.caption)
-                .foregroundStyle(.secondary)
+    var body: some View {
+        HStack(spacing: 8) {
+            Circle()
+                .fill(indicatorColor)
+                .frame(width: 8, height: 8)
+            Text(status.connectionState.title)
+                .font(.headline)
+            if let peer = status.peerDescription {
+                Text("(\(peer))")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
         }
 
         if status.isConnected {

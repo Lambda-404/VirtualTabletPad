@@ -2,13 +2,6 @@ import Combine
 import Foundation
 import VPadProtocol
 
-enum ClientConnectionState: Equatable, Sendable {
-    case idle
-    case searching
-    case connected
-    case failed(String)
-}
-
 enum TransportMode: String, CaseIterable, Identifiable, Codable, Sendable {
     case automatic
     case usb
@@ -39,7 +32,7 @@ enum TransportMode: String, CaseIterable, Identifiable, Codable, Sendable {
 /// Main-actor UI state fed by the TCP client's background callbacks.
 @MainActor
 final class SessionCoordinator: ObservableObject {
-    @Published private(set) var connectionState: ClientConnectionState = .idle
+    @Published private(set) var connectionState: VPadConnectionState = .disconnected
     @Published private(set) var transportMode: TransportMode
     @Published private(set) var manualHost: String
     @Published private(set) var peerName: String?
@@ -88,13 +81,13 @@ final class SessionCoordinator: ObservableObject {
     }
 
     var isConnected: Bool {
-        connectionState == .connected
+        connectionState == .active
     }
 
     func start() {
         guard !isStarted else { return }
         isStarted = true
-        connectionState = .searching
+        connectionState = .connecting
         lastError = nil
         remoteHost = nil
         droppedPackets = 0
@@ -123,7 +116,7 @@ final class SessionCoordinator: ObservableObject {
         }
 
         guard isStarted else { return }
-        connectionState = .searching
+        connectionState = .connecting
         peerName = nil
         latencyMilliseconds = nil
         droppedPackets = 0
@@ -194,7 +187,7 @@ final class SessionCoordinator: ObservableObject {
         TCPFileClient.shared.stop()
         UDPClient.shared.stop()
         ModifierState.shared.clear()
-        connectionState = .idle
+        connectionState = .disconnected
         peerName = nil
         remoteHost = nil
         latencyMilliseconds = nil
@@ -223,10 +216,12 @@ final class SessionCoordinator: ObservableObject {
     private func handle(_ event: TCPFileClient.Event) {
         switch event {
         case .connecting:
-            connectionState = .searching
+            connectionState = .connecting
             peerName = nil
+        case .handshaking:
+            connectionState = .handshaking
         case .connected(let peer):
-            connectionState = .connected
+            connectionState = .active
             peerName = peer
             lastError = nil
             directFallbackTask?.cancel()
@@ -234,10 +229,18 @@ final class SessionCoordinator: ObservableObject {
             #if DEBUG
             runAutoSmokeIfNeeded()
             #endif
+        case .reconnecting(let reason):
+            connectionState = .reconnecting
+            peerName = nil
+            latencyMilliseconds = nil
+            lastError = reason
+            if transportMode == .direct, manualHost.hasPrefix("169.254.") {
+                scheduleDirectFallback()
+            }
         case .remoteAddress(let host):
             remoteHost = host
         case .disconnected(let reason):
-            connectionState = .searching
+            connectionState = .disconnected
             peerName = nil
             latencyMilliseconds = nil
             droppedPackets = 0

@@ -600,23 +600,25 @@ struct LiquidGlassWorkspaceView: View {
 
     private var connectionTitle: String {
         switch coordinator.connectionState {
-        case .connected:
+        case .active:
             return coordinator.transportMode == .usb ? "USB Cable" : "Connected"
-        case .searching:
+        case .handshaking:
+            return "Authenticating…"
+        case .connecting:
             return coordinator.transportMode == .direct ? "Connecting…" : "Searching…"
-        case .failed:
-            return "Connection issue"
-        case .idle:
+        case .reconnecting:
+            return "Reconnecting…"
+        case .disconnected:
             return "Offline"
         }
     }
 
     private var connectionColor: Color {
         switch coordinator.connectionState {
-        case .connected: return .green
-        case .searching: return .liquidAmber
-        case .failed: return .liquidOrange
-        case .idle: return .secondary
+        case .active: return .green
+        case .handshaking: return .blue
+        case .connecting, .reconnecting: return .liquidAmber
+        case .disconnected: return .secondary
         }
     }
 
@@ -847,10 +849,11 @@ private struct LiquidConnectionPill: View {
     private var statusKey: String {
         if isUploading { return "upload" }
         switch coordinator.connectionState {
-        case .connected: return "connected"
-        case .searching: return "searching"
-        case .failed: return "failed"
-        case .idle: return "idle"
+        case .active: return "connected"
+        case .handshaking: return "handshaking"
+        case .connecting: return "searching"
+        case .reconnecting: return "reconnecting"
+        case .disconnected: return "idle"
         }
     }
 
@@ -907,22 +910,24 @@ private struct LiquidConnectionPill: View {
 
     private var statusColor: Color {
         switch coordinator.connectionState {
-        case .connected: return .green
-        case .searching: return .liquidAmber
-        case .failed: return .liquidOrange
-        case .idle: return .secondary
+        case .active: return .green
+        case .handshaking: return .blue
+        case .connecting, .reconnecting: return .liquidAmber
+        case .disconnected: return .secondary
         }
     }
 
     private var statusTitle: String {
         switch coordinator.connectionState {
-        case .connected:
+        case .active:
             return coordinator.peerName.map { $0.contains(":") ? "Mac" : $0 } ?? "Mac"
-        case .searching:
+        case .handshaking:
+            return "Authenticating…"
+        case .connecting:
             return coordinator.transportMode == .direct ? "Connecting…" : "Searching…"
-        case .failed:
-            return "Connection issue"
-        case .idle:
+        case .reconnecting:
+            return "Reconnecting…"
+        case .disconnected:
             return "Offline"
         }
     }

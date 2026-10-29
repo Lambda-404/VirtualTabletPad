@@ -511,10 +511,11 @@ struct WorkspaceSettingsView: View {
 
     private var statusText: String {
         switch coordinator.connectionState {
-        case .connected: return "Connected"
-        case .searching: return "Searching…"
-        case .failed(let reason): return reason
-        case .idle: return "Idle"
+        case .active: return "Connected"
+        case .handshaking: return "Authenticating…"
+        case .connecting: return "Searching…"
+        case .reconnecting: return "Reconnecting…"
+        case .disconnected: return "Offline"
         }
     }
 
