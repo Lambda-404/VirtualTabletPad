@@ -33,6 +33,8 @@ final class UDPClient: @unchecked Sendable {
     private var lastY: Float32 = 0
     private var lastPressure: Float32 = 0
 
+    var onPongReceived: ((_ clientTimestamp: UInt64, _ hostTimestamp: UInt64, _ pingId: UInt16) -> Void)?
+
     private init() {}
 
     // MARK: - Lifecycle
@@ -149,6 +151,15 @@ final class UDPClient: @unchecked Sendable {
                 self?.finishSend()
             })
         }
+    }
+
+    /// Sends a diagnostic ping packet carrying a high-resolution timestamp (§3.5).
+    @discardableResult
+    func sendPing(id: UInt16 = 0) -> UInt64? {
+        let ts = mach_absolute_time()
+        let packet = VPadPacket.ping(timestamp: ts, id: id)
+        send(packet)
+        return ts
     }
 
     /// High-rate stylus/trackpad packets stay capped at two in flight. Keyboard,
@@ -312,6 +323,10 @@ final class UDPClient: @unchecked Sendable {
                 if let currentSession, let packet = currentSession.openUDP(data) {
                     if packet.type == EventType.hostAck.rawValue, let ackSeq = packet.ackSequenceNumber {
                         self.resendEngine.onAckReceived(ackSeq)
+                    } else if packet.type == EventType.pong.rawValue, let clientTs = packet.pingTimestamp {
+                        let hostTs = packet.pongHostTimestamp ?? 0
+                        let pingId = packet.pingId
+                        self.onPongReceived?(clientTs, hostTs, pingId)
                     }
                 }
             }

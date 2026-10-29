@@ -306,6 +306,58 @@ public struct VPadPacket: Equatable, Sendable {
         return UInt64(low) | (UInt64(high) << 32)
     }
 
+    /// Creates a ping packet containing client timestamp and ping identifier (§3.5).
+    public static func ping(timestamp: UInt64, id: UInt16 = 0) -> VPadPacket {
+        let low = UInt32(timestamp & 0xFFFF_FFFF)
+        let high = UInt32((timestamp >> 32) & 0xFFFF_FFFF)
+        return VPadPacket(
+            type: EventType.ping.rawValue,
+            phase: 0,
+            modifiers: id,
+            x: Float32(bitPattern: low),
+            y: Float32(bitPattern: high)
+        )
+    }
+
+    /// Creates an echo pong packet preserving client timestamp and ping identifier,
+    /// with an optional host-side receipt timestamp (§3.5).
+    public static func pong(clientTimestamp: UInt64, hostTimestamp: UInt64 = 0, id: UInt16 = 0) -> VPadPacket {
+        let cLow = UInt32(clientTimestamp & 0xFFFF_FFFF)
+        let cHigh = UInt32((clientTimestamp >> 32) & 0xFFFF_FFFF)
+        let hLow = UInt32(hostTimestamp & 0xFFFF_FFFF)
+        let hHigh = UInt32((hostTimestamp >> 32) & 0xFFFF_FFFF)
+        return VPadPacket(
+            type: EventType.pong.rawValue,
+            phase: 0,
+            modifiers: id,
+            x: Float32(bitPattern: cLow),
+            y: Float32(bitPattern: cHigh),
+            pressure: Float32(bitPattern: hLow),
+            tiltX: Float32(bitPattern: hHigh)
+        )
+    }
+
+    /// Decodes the client timestamp from a ping or pong packet.
+    public var pingTimestamp: UInt64? {
+        guard type == EventType.ping.rawValue || type == EventType.pong.rawValue else { return nil }
+        let low = x.bitPattern
+        let high = y.bitPattern
+        return UInt64(low) | (UInt64(high) << 32)
+    }
+
+    /// Decodes the host timestamp from an echo pong packet if present.
+    public var pongHostTimestamp: UInt64? {
+        guard type == EventType.pong.rawValue else { return nil }
+        let low = pressure.bitPattern
+        let high = tiltX.bitPattern
+        return UInt64(low) | (UInt64(high) << 32)
+    }
+
+    /// Decodes the ping / pong identifier sequence number.
+    public var pingId: UInt16 {
+        modifiers
+    }
+
     // MARK: - Helpers
 
     private static func finite(_ value: Float32, fallback: Float32 = 0) -> Float32 {

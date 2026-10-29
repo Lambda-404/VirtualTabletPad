@@ -187,6 +187,15 @@ final class UDPServer: @unchecked Sendable {
                 connection.send(content: ackEnvelope, completion: .idempotent)
             }
         }
+
+        // Task 3.5: If this is a ping packet, echo back a pong packet with timestamps preserved
+        if packet.type == EventType.ping.rawValue, let clientTs = packet.pingTimestamp {
+            let hostTs = mach_absolute_time()
+            let pongPacket = VPadPacket.pong(clientTimestamp: clientTs, hostTimestamp: hostTs, id: packet.pingId)
+            if let pongEnvelope = currentSession.sealUDP(pongPacket) {
+                connection.send(content: pongEnvelope, completion: .idempotent)
+            }
+        }
     }
 
     private func removeConnection(_ connection: NWConnection) {

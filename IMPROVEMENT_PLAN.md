@@ -217,3 +217,4 @@ Each feature gets its own branch and settings UI, with settings stored in a `Cod
 | 3.2  | done   | agent/3.2-heartbeat-reconciliation | 100ms periodic state heartbeat (pen, buttons, modifiers), host state reconciliation, tests |
 | 3.3  | done   | agent/3.3-host-watchdog | 500ms inactivity watchdog while states held (release mouse, keys, modifiers), unit tests |
 | 3.4  | done   | agent/3.4-connection-state-machine | Unified VPadConnectionState (disconnected, connecting, handshaking, active, reconnecting), UI & tests |
+| 3.5  | done   | agent/3.5-latency-benchmark | Ping/pong wire packets, Tools/latency-bench (p50/p95/p99/jitter), docs/latency.md, tests |

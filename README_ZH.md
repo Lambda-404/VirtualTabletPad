@@ -21,7 +21,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Platform-macOS%2014%2B%20%7C%20iPadOS%2017.5%2B-blue?style=flat-square" alt="Platform" />
   <img src="https://img.shields.io/badge/Swift-6.0-orange?style=flat-square&logo=swift" alt="Swift" />
-  <img src="https://img.shields.io/badge/Latency-~1.4ms%20(USB)-brightgreen?style=flat-square" alt="Latency" />
+  <img src="https://img.shields.io/badge/RTT-~1.4ms%20(USB)-brightgreen?style=flat-square" alt="RTT" />
   <img src="https://img.shields.io/badge/Security-E2EE%20(AES--GCM--256)-blueviolet?style=flat-square" alt="Security" />
   <img src="https://img.shields.io/badge/License-GPL--3.0-blue?style=flat-square" alt="License" />
 </p>
@@ -30,7 +30,7 @@
 
 **VirtualTabletPad** 是一款专为创作者与生产力用户设计的开源工具。通过自研的高效低延迟协议，它能将你的 iPad 瞬间变为 Mac 的**高刷新率数位板**（支持 Apple Pencil Pro 全套硬件特性）以及**大面积多点触控板**。
 
-支持 **USB-C 直连**（仅需 1.4~1.8 ms 延迟，无需局域网或 Wi-Fi）与 **Wi-Fi Bonjour 自动组网**，同时内置端到端军事级加密（E2EE），确保输入与文件传输安全私密。
+支持 **USB-C 直连**（仅需 1.4~1.8 ms 传输往返 RTT，无需局域网或 Wi-Fi）与 **Wi-Fi Bonjour 自动组网**，同时内置端到端加密（E2EE），确保输入与文件传输安全私密。详见 [docs/latency.md](docs/latency.md)。
 
 <p align="center">
   <img src="docs/ipad-simulator.png" width="58%" alt="iPadOS 27 模拟器（iPad Pro 13-inch M5）运行 Liquid Glass 工作台" style="border-radius: 8px;" />
@@ -52,7 +52,7 @@
 
 ### 2. ⚡ 极速低延迟：USB-C 原生隧道 & 无缝无线
 * **USB-C 有线直连（极力推荐）**：
-  * 基于 `usbmuxd` 原生隧道通讯，**延迟低至 1.4 ~ 1.8 ms**！
+  * 基于 `usbmuxd` 原生隧道通讯，**往返 RTT 低至 1.4 ~ 1.8 ms**（在 120 Hz ProMotion 屏幕上触控到光标总延迟仅约 **9 ~ 14 ms**；详见 [docs/latency.md](docs/latency.md)）！
   * 即插即用，无需配置网络适配器，不占用 Wi-Fi / 个人热点或系统代理。
 * **Wi-Fi / AWDL 自动发现**：通过 Bonjour 协议自动广播与扫描，局域网内秒速配对。
 * **一键扫码配对**：Mac 状态栏直接生成专属连接二维码，iPad 扫码即连。

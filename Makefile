@@ -71,6 +71,16 @@ inspector:
 	swiftc -O -framework AppKit -framework SwiftUI Tools/TabletEventInspector/main.swift -o build/TabletEventInspector
 	./build/TabletEventInspector
 
+latency-bench:
+	mkdir -p build
+	swiftc -O -framework Foundation -framework Network \
+	  Packages/VPadProtocol/Sources/VPadProtocol/VPadConstants.swift \
+	  Packages/VPadProtocol/Sources/VPadProtocol/VPadPacket.swift \
+	  Packages/VPadProtocol/Sources/VPadProtocol/VPadFrames.swift \
+	  Packages/VPadProtocol/Sources/VPadProtocol/LatencyMetrics.swift \
+	  Tools/latency-bench/main.swift -o build/latency-bench
+	./build/latency-bench --self-test
+
 ipad-build: generate
 	xcodebuild -project $(PROJECT) -scheme iPadClient -configuration $(IPAD_CONFIG) \
 	  -destination 'generic/platform=iOS Simulator' \

@@ -21,7 +21,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Platform-macOS%2014%2B%20%7C%20iPadOS%2017.5%2B-blue?style=flat-square" alt="Platform" />
   <img src="https://img.shields.io/badge/Swift-6.0-orange?style=flat-square&logo=swift" alt="Swift" />
-  <img src="https://img.shields.io/badge/Latency-~1.4ms%20(USB)-brightgreen?style=flat-square" alt="Latency" />
+  <img src="https://img.shields.io/badge/RTT-~1.4ms%20(USB)-brightgreen?style=flat-square" alt="RTT" />
   <img src="https://img.shields.io/badge/Security-E2EE%20(AES--GCM--256)-blueviolet?style=flat-square" alt="Security" />
   <img src="https://img.shields.io/badge/License-GPL--3.0-blue?style=flat-square" alt="License" />
 </p>
@@ -30,7 +30,7 @@
 
 **VirtualTabletPad** is an open-source productivity app that turns your iPad into an Apple Pencil graphics tablet and multi-touch trackpad for your Mac.
 
-It features ultra-low latency **USB-C connectivity** (~1.4 ms, no Wi-Fi or local network needed), automatic **Wi-Fi Bonjour discovery**, full support for **Apple Pencil Pro hardware gestures** (squeeze, barrel roll, hover, haptic feedback), and end-to-end military-grade encryption (E2EE).
+It features ultra-low round-trip latency **USB-C connectivity** (~1.4 ms RTT, no Wi-Fi or local network needed), automatic **Wi-Fi Bonjour discovery**, full support for **Apple Pencil Pro hardware gestures** (squeeze, barrel roll, hover, haptic feedback), and end-to-end encryption (E2EE). See [docs/latency.md](docs/latency.md) for full latency pipeline details.
 
 <p align="center">
   <img src="docs/ipad-simulator.png" width="58%" alt="iPadOS 27 Simulator (iPad Pro 13-inch M5) running the Liquid Glass Workspace" style="border-radius: 8px;" />
@@ -52,7 +52,7 @@ It features ultra-low latency **USB-C connectivity** (~1.4 ms, no Wi-Fi or local
 
 ### 2. ⚡ Ultra-Low Latency: Raw USB-C & Seamless Wireless
 * **Raw USB-C Cable (Recommended)**:
-  * Leverages native `usbmuxd` TCP tunneling with latency as low as **1.4 ~ 1.8 ms**.
+  * Leverages native `usbmuxd` TCP tunneling with round-trip time (RTT) as low as **1.4 ~ 1.8 ms** (yielding **~9–14 ms** touch-to-cursor latency on 120 Hz ProMotion displays; see [docs/latency.md](docs/latency.md)).
   * True plug-and-play without network configuration, IP routing, or Wi-Fi dependencies.
 * **Wi-Fi / AWDL Bonjour Discovery**: Auto-detects Mac hosts on your local network.
 * **QR Pairing**: Generate an instant pairing QR code from the Mac menu bar to connect your iPad camera.
