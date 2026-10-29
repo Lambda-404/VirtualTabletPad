@@ -25,6 +25,7 @@ final class EventInjector: @unchecked Sendable {
     private var isLeftMouseDown = false
     private var isRightMouseDown = false
     private var isStylusDown = false
+    private var isStylusInProximity = false
     private var keyboardDown: [CGKeyCode: CGEventFlags] = [:]
     private var didWakeDisplay = false
 
@@ -140,6 +141,10 @@ final class EventInjector: @unchecked Sendable {
         if isStylusDown {
             isStylusDown = false
             postMouse(.leftMouseUp, at: location, button: .left, flags: [])
+        }
+        if isStylusInProximity {
+            isStylusInProximity = false
+            postProximity(entering: false, flags: [])
         }
     }
 
@@ -379,10 +384,22 @@ final class EventInjector: @unchecked Sendable {
 
     private func injectProximity(_ packet: VPadPacket, flags: CGEventFlags) {
         let entering = packet.phase == Phase.began.rawValue
-        if !entering, isStylusDown {
-            isStylusDown = false
-            postMouse(.leftMouseUp, at: currentPointerLocation(), button: .left, flags: flags)
+        if entering {
+            guard !isStylusInProximity else { return }
+            isStylusInProximity = true
+            postProximity(entering: true, flags: flags)
+        } else {
+            guard isStylusInProximity else { return }
+            if isStylusDown {
+                isStylusDown = false
+                postMouse(.leftMouseUp, at: currentPointerLocation(), button: .left, flags: flags)
+            }
+            isStylusInProximity = false
+            postProximity(entering: false, flags: flags)
         }
+    }
+
+    private func postProximity(entering: Bool, flags: CGEventFlags) {
         if isDryRun {
             logDryRun("PROXIMITY entering=\(entering ? 1 : 0) flags=\(flags.rawValue)")
             return
@@ -393,12 +410,22 @@ final class EventInjector: @unchecked Sendable {
         event.setIntegerValueField(.tabletProximityEventEnterProximity, value: entering ? 1 : 0)
         event.setIntegerValueField(.tabletProximityEventPointerType, value: 1)   // pen tip
         event.setIntegerValueField(.tabletProximityEventVendorID, value: 0x056A) // Wacom emulation
+        event.setIntegerValueField(.tabletProximityEventTabletID, value: 1)
+        event.setIntegerValueField(.tabletProximityEventPointerID, value: 1)
+        event.setIntegerValueField(.tabletProximityEventDeviceID, value: 1)
+        event.setIntegerValueField(.tabletProximityEventSystemTabletID, value: 1)
+        event.setIntegerValueField(.tabletProximityEventVendorPointerType, value: 1)
         event.setIntegerValueField(.tabletProximityEventCapabilityMask, value: 0x0FFF)
         poster.post(event, tap: .cghidEventTap)
     }
 
     private func injectStylus(_ packet: VPadPacket, isHover: Bool, flags: CGEventFlags) {
         guard let point = displayPoint(normalizedX: packet.x, normalizedY: packet.y) else { return }
+
+        if !isStylusInProximity {
+            isStylusInProximity = true
+            postProximity(entering: true, flags: flags)
+        }
 
         if isHover {
             postTabletMouse(.mouseMoved, at: point, button: .left, packet: packet, flags: flags)
@@ -457,8 +484,13 @@ final class EventInjector: @unchecked Sendable {
         let degrees = packet.rollAngle.isFinite
             ? fmod((Double(packet.rollAngle) * 180.0 / .pi) + 360.0, 360.0)
             : 0
+        let pressure = (type == .mouseMoved) ? 0.0 : safeUnit(packet.pressure)
+        let tiltX = safeBipolar(packet.tiltX)
+        let tiltY = safeBipolar(packet.tiltY)
+        let buttons: Int64 = (type == .leftMouseDown || type == .leftMouseDragged) ? 1 : 0
+
         if isDryRun {
-            logDryRun("TABLET_MOUSE type=\(type.rawValue) x=\(String(format: "%.2f", point.x)) y=\(String(format: "%.2f", point.y)) button=\(button.rawValue) flags=\(flags.rawValue) pressure=\(String(format: "%.3f", safeUnit(packet.pressure))) tiltX=\(String(format: "%.3f", safeBipolar(packet.tiltX))) tiltY=\(String(format: "%.3f", safeBipolar(packet.tiltY))) rotation=\(String(format: "%.1f", degrees)) subtype=\(CGEventMouseSubtype.tabletPoint.rawValue)")
+            logDryRun("TABLET_MOUSE type=\(type.rawValue) x=\(String(format: "%.2f", point.x)) y=\(String(format: "%.2f", point.y)) button=\(button.rawValue) flags=\(flags.rawValue) pressure=\(String(format: "%.3f", pressure)) tiltX=\(String(format: "%.3f", tiltX)) tiltY=\(String(format: "%.3f", tiltY)) rotation=\(String(format: "%.1f", degrees)) subtype=\(CGEventMouseSubtype.tabletPoint.rawValue)")
             return
         }
         guard let event = CGEvent(
@@ -474,10 +506,13 @@ final class EventInjector: @unchecked Sendable {
             .mouseEventSubtype,
             value: Int64(CGEventMouseSubtype.tabletPoint.rawValue)
         )
-        event.setDoubleValueField(.mouseEventPressure, value: safeUnit(packet.pressure))
-        event.setDoubleValueField(.tabletEventTiltX, value: safeBipolar(packet.tiltX))
-        event.setDoubleValueField(.tabletEventTiltY, value: safeBipolar(packet.tiltY))
+        event.setDoubleValueField(.mouseEventPressure, value: pressure)
+        event.setDoubleValueField(.tabletEventPointPressure, value: pressure)
+        event.setDoubleValueField(.tabletEventTiltX, value: tiltX)
+        event.setDoubleValueField(.tabletEventTiltY, value: tiltY)
         event.setDoubleValueField(.tabletEventRotation, value: degrees)
+        event.setIntegerValueField(.tabletEventPointButtons, value: buttons)
+        event.setIntegerValueField(.tabletEventDeviceID, value: 1)
         poster.post(event, tap: .cghidEventTap)
     }
 

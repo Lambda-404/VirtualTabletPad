@@ -71,9 +71,9 @@ final class EventInjectorTests: XCTestCase {
         XCTAssertEqual(poster.events.last?.type, .rightMouseUp)
     }
 
-    // MARK: - Stylus Tests
+    // MARK: - Stylus & Proximity State Machine Tests
 
-    func testStylusHoverPostsTabletPointMouseMoved() {
+    func testStylusHoverEntersProximityAndPostsTabletPointMouseMoved() {
         let hover = VPadPacket.stylusHover(
             x: 0.5,
             y: 0.5,
@@ -84,24 +84,45 @@ final class EventInjectorTests: XCTestCase {
         )
         injector.inject(hover)
 
-        XCTAssertEqual(poster.count, 1)
-        guard let event = poster.events.first else { return }
-        XCTAssertEqual(event.type, .mouseMoved)
-        XCTAssertEqual(event.subtype, Int64(CGEventMouseSubtype.tabletPoint.rawValue))
-        XCTAssertEqual(event.pressure, 0.0, accuracy: 0.001)
-        XCTAssertEqual(event.tiltX, 0.25, accuracy: 0.001)
-        XCTAssertEqual(event.tiltY, -0.15, accuracy: 0.001)
-        XCTAssertEqual(event.rotation, 90.0, accuracy: 0.5)
+        // Proximity state machine automatically emits enterProximity before first hover
+        XCTAssertEqual(poster.count, 2)
+        let enterEvent = poster.events[0]
+        XCTAssertEqual(enterEvent.type, .tabletProximity)
+        XCTAssertEqual(enterEvent.rawEvent.getIntegerValueField(.tabletProximityEventEnterProximity), 1)
 
-        // (0.5, 0.5) on 1920x1080 display
+        let hoverEvent = poster.events[1]
+        XCTAssertEqual(hoverEvent.type, .mouseMoved)
+        XCTAssertEqual(hoverEvent.subtype, Int64(CGEventMouseSubtype.tabletPoint.rawValue))
+        XCTAssertEqual(hoverEvent.pressure, 0.0, accuracy: 0.001)
+        XCTAssertEqual(hoverEvent.rawEvent.getDoubleValueField(.tabletEventPointPressure), 0.0, accuracy: 0.001)
+        XCTAssertEqual(hoverEvent.tiltX, 0.25, accuracy: 0.001)
+        XCTAssertEqual(hoverEvent.tiltY, -0.15, accuracy: 0.001)
+        XCTAssertEqual(hoverEvent.rotation, 90.0, accuracy: 0.5)
+
+        // Coordinates mapped to display
         let expectedX = CGFloat(0.5) * (1920.0 - 1.0)
-        let expectedY = CGFloat(0.5) * (1080.0 - 1.0)
-        XCTAssertEqual(event.location.x, expectedX, accuracy: 0.5)
-        XCTAssertEqual(event.location.y, expectedY, accuracy: 0.5)
+        let expectedY = CGFloat(0.5) * (1080.0 - 1080.0 < 0 ? 0 : 1080.0 - 1.0)
+        XCTAssertEqual(hoverEvent.location.x, expectedX, accuracy: 0.5)
+        XCTAssertEqual(hoverEvent.location.y, expectedY, accuracy: 0.5)
+
+        // Subsequent hover within proximity does not re-emit enterProximity
+        let hover2 = VPadPacket.stylusHover(
+            x: 0.6,
+            y: 0.6,
+            tiltX: 0.1,
+            tiltY: 0.1,
+            rollAngle: 0.0,
+            phase: .moved
+        )
+        injector.inject(hover2)
+        XCTAssertEqual(poster.count, 3)
+        XCTAssertEqual(poster.events[2].type, .mouseMoved)
     }
 
-    func testStylusStrokeLifecycle() {
-        // 1. Began
+    func testStylusStrokeLifecycleSequence() {
+        // Task 2.2: Event sequence for a stroke = enter proximity, down, drags, up
+
+        // 1. Stroke Began (starts stroke from outside proximity)
         let began = VPadPacket.stylusStroke(
             x: 0.2,
             y: 0.3,
@@ -113,13 +134,20 @@ final class EventInjectorTests: XCTestCase {
         )
         injector.inject(began)
 
-        XCTAssertEqual(poster.count, 1)
-        guard let beganEvent = poster.events.first else { return }
-        XCTAssertEqual(beganEvent.type, .leftMouseDown)
-        XCTAssertEqual(beganEvent.subtype, Int64(CGEventMouseSubtype.tabletPoint.rawValue))
-        XCTAssertEqual(beganEvent.pressure, 0.65, accuracy: 0.01)
+        // Must emit: [0] tabletProximity(enter=1), [1] leftMouseDown(tabletPoint)
+        XCTAssertEqual(poster.count, 2)
+        let enterEvent = poster.events[0]
+        XCTAssertEqual(enterEvent.type, .tabletProximity)
+        XCTAssertEqual(enterEvent.rawEvent.getIntegerValueField(.tabletProximityEventEnterProximity), 1)
 
-        // 2. Moved (drag)
+        let downEvent = poster.events[1]
+        XCTAssertEqual(downEvent.type, .leftMouseDown)
+        XCTAssertEqual(downEvent.subtype, Int64(CGEventMouseSubtype.tabletPoint.rawValue))
+        XCTAssertEqual(downEvent.pressure, 0.65, accuracy: 0.01)
+        XCTAssertEqual(downEvent.rawEvent.getDoubleValueField(.tabletEventPointPressure), 0.65, accuracy: 0.01)
+        XCTAssertEqual(downEvent.rawEvent.getIntegerValueField(.tabletEventPointButtons), 1)
+
+        // 2. Stroke Moved (drag)
         let moved = VPadPacket.stylusStroke(
             x: 0.25,
             y: 0.35,
@@ -131,13 +159,15 @@ final class EventInjectorTests: XCTestCase {
         )
         injector.inject(moved)
 
-        XCTAssertEqual(poster.count, 2)
-        guard let dragEvent = poster.events.last else { return }
+        XCTAssertEqual(poster.count, 3)
+        let dragEvent = poster.events[2]
         XCTAssertEqual(dragEvent.type, .leftMouseDragged)
         XCTAssertEqual(dragEvent.subtype, Int64(CGEventMouseSubtype.tabletPoint.rawValue))
         XCTAssertEqual(dragEvent.pressure, 0.85, accuracy: 0.01)
+        XCTAssertEqual(dragEvent.rawEvent.getDoubleValueField(.tabletEventPointPressure), 0.85, accuracy: 0.01)
+        XCTAssertEqual(dragEvent.rawEvent.getIntegerValueField(.tabletEventPointButtons), 1)
 
-        // 3. Ended (up)
+        // 3. Stroke Ended (up)
         let ended = VPadPacket.stylusStroke(
             x: 0.3,
             y: 0.4,
@@ -149,33 +179,85 @@ final class EventInjectorTests: XCTestCase {
         )
         injector.inject(ended)
 
-        XCTAssertEqual(poster.count, 3)
-        guard let upEvent = poster.events.last else { return }
+        XCTAssertEqual(poster.count, 4)
+        let upEvent = poster.events[3]
         XCTAssertEqual(upEvent.type, .leftMouseUp)
         XCTAssertEqual(upEvent.subtype, Int64(CGEventMouseSubtype.tabletPoint.rawValue))
-    }
+        XCTAssertEqual(upEvent.rawEvent.getIntegerValueField(.tabletEventPointButtons), 0)
 
-    func testProximityEnteringAndExiting() {
-        let enter = VPadPacket.stylusProximity(phase: .began)
-        injector.inject(enter)
-
-        XCTAssertEqual(poster.count, 1)
-        guard let enterEvent = poster.events.first else { return }
-        XCTAssertEqual(enterEvent.type, .tabletProximity)
-        XCTAssertEqual(enterEvent.rawEvent.getIntegerValueField(.tabletProximityEventEnterProximity), 1)
-
-        // Exit proximity while pen was up
+        // Pen is still in proximity after stroke up
         let exit = VPadPacket.stylusProximity(phase: .ended)
         injector.inject(exit)
 
-        XCTAssertEqual(poster.count, 2)
-        guard let exitEvent = poster.events.last else { return }
+        XCTAssertEqual(poster.count, 5)
+        let exitEvent = poster.events[4]
         XCTAssertEqual(exitEvent.type, .tabletProximity)
         XCTAssertEqual(exitEvent.rawEvent.getIntegerValueField(.tabletProximityEventEnterProximity), 0)
     }
 
+    func testDisconnectMidStrokeEmitsUpAndLeaveProximity() {
+        // Task 2.2: disconnect mid-stroke emits up + leave
+        let strokeBegan = VPadPacket.stylusStroke(
+            x: 0.5,
+            y: 0.5,
+            pressure: 0.5,
+            tiltX: 0.0,
+            tiltY: 0.0,
+            rollAngle: 0.0,
+            phase: .began
+        )
+        injector.inject(strokeBegan)
+
+        XCTAssertEqual(poster.count, 2) // enterProximity + leftMouseDown
+
+        // Disconnect triggers releaseAll()
+        injector.releaseAll()
+
+        // Must emit leftMouseUp followed by leave proximity
+        XCTAssertEqual(poster.count, 4)
+        XCTAssertEqual(poster.events[2].type, .leftMouseUp)
+        XCTAssertEqual(poster.events[3].type, .tabletProximity)
+        XCTAssertEqual(poster.events[3].rawEvent.getIntegerValueField(.tabletProximityEventEnterProximity), 0)
+    }
+
+    func testPressureAndTiltClamping() {
+        // Task 2.2: pressure is clamped to 0...1, tilt to -1...1
+        // Create packet and overwrite float fields to simulate out-of-bounds wire values
+        let base = VPadPacket.stylusStroke(
+            x: 0.5,
+            y: 0.5,
+            pressure: 0.5,
+            tiltX: 0.0,
+            tiltY: 0.0,
+            rollAngle: 0.0,
+            phase: .began
+        )
+        var data = base.toData()
+        var rawPressure: Float32 = 2.5
+        var rawTiltX: Float32 = 3.0
+        var rawTiltY: Float32 = -4.0
+        withUnsafeBytes(of: &rawPressure) { data.replaceSubrange(12..<16, with: $0) }
+        withUnsafeBytes(of: &rawTiltX) { data.replaceSubrange(16..<20, with: $0) }
+        withUnsafeBytes(of: &rawTiltY) { data.replaceSubrange(20..<24, with: $0) }
+        guard let wirePacket = VPadPacket.fromData(data) else {
+            XCTFail("Failed to decode wire packet")
+            return
+        }
+
+        injector.inject(wirePacket)
+
+        guard let downEvent = poster.events.last else {
+            XCTFail("Expected posted event")
+            return
+        }
+        XCTAssertEqual(downEvent.type, .leftMouseDown)
+        XCTAssertEqual(downEvent.pressure, 1.0, accuracy: 0.01)
+        XCTAssertEqual(downEvent.rawEvent.getDoubleValueField(.tabletEventPointPressure), 1.0, accuracy: 0.01)
+        XCTAssertEqual(downEvent.tiltX, 1.0, accuracy: 0.001)
+        XCTAssertEqual(downEvent.tiltY, -1.0, accuracy: 0.001)
+    }
+
     func testProximityExitMidStrokeReleasesMouse() {
-        // Start stroke
         let strokeBegan = VPadPacket.stylusStroke(
             x: 0.5,
             y: 0.5,
@@ -188,31 +270,14 @@ final class EventInjectorTests: XCTestCase {
         injector.inject(strokeBegan)
         XCTAssertEqual(poster.events.last?.type, .leftMouseDown)
 
-        // Exit proximity mid-stroke
+        // Exit proximity packet mid-stroke
         let exit = VPadPacket.stylusProximity(phase: .ended)
         injector.inject(exit)
 
         // Must emit leftMouseUp before tabletProximity exit
-        XCTAssertEqual(poster.count, 3)
-        XCTAssertEqual(poster.events[1].type, .leftMouseUp)
-        XCTAssertEqual(poster.events[2].type, .tabletProximity)
-    }
-
-    func testReleaseAllReleasesActiveDragAndKeys() {
-        let strokeBegan = VPadPacket.stylusStroke(
-            x: 0.5,
-            y: 0.5,
-            pressure: 0.5,
-            tiltX: 0.0,
-            tiltY: 0.0,
-            rollAngle: 0.0,
-            phase: .began
-        )
-        injector.inject(strokeBegan)
-        XCTAssertEqual(poster.events.last?.type, .leftMouseDown)
-
-        injector.releaseAll()
-
-        XCTAssertEqual(poster.events.last?.type, .leftMouseUp)
+        XCTAssertEqual(poster.count, 4)
+        XCTAssertEqual(poster.events[2].type, .leftMouseUp)
+        XCTAssertEqual(poster.events[3].type, .tabletProximity)
+        XCTAssertEqual(poster.events[3].rawEvent.getIntegerValueField(.tabletProximityEventEnterProximity), 0)
     }
 }
