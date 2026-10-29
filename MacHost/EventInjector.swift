@@ -26,8 +26,10 @@ final class EventInjector: @unchecked Sendable {
     private var isRightMouseDown = false
     private var isStylusDown = false
     private var isStylusInProximity = false
+    private var currentModifiers: UInt16 = 0
     private var keyboardDown: [CGKeyCode: CGEventFlags] = [:]
     private var didWakeDisplay = false
+    var watchdog: HostWatchdog!
 
     init(
         poster: any EventPosting = DefaultEventPoster(),
@@ -35,6 +37,8 @@ final class EventInjector: @unchecked Sendable {
         screenBoundsProvider: (@Sendable () -> CGRect)? = nil,
         pointerLocationProvider: (@Sendable () -> CGPoint)? = nil,
         warpCursorHandler: (@Sendable (CGPoint) -> Void)? = nil,
+        watchdogTimeout: TimeInterval = HostWatchdog.defaultTimeout,
+        clockProvider: @escaping @Sendable () -> TimeInterval = { ProcessInfo.processInfo.systemUptime },
         isDryRun: Bool = ProcessInfo.processInfo.environment["VPAD_DRY_RUN_INJECT"] == "1"
     ) {
         self.poster = poster
@@ -53,6 +57,19 @@ final class EventInjector: @unchecked Sendable {
             CGWarpMouseCursorPosition(point)
         }
         self.isDryRun = isDryRun
+
+        let dog = HostWatchdog(
+            timeout: watchdogTimeout,
+            clock: clockProvider,
+            onTimeout: { [weak self] in
+                self?.releaseAll()
+            }
+        )
+        dog.onTimeoutCheck = { [weak dog, weak self] in
+            guard let dog, let self else { return }
+            dog.checkTimeout(hasHeldState: self.hasHeldState)
+        }
+        self.watchdog = dog
     }
 
     private func logDryRun(_ message: String) {
@@ -67,11 +84,17 @@ final class EventInjector: @unchecked Sendable {
     // MARK: - Public entry points
 
     func inject(_ packet: VPadPacket) {
+        watchdog.packetReceived()
+        defer {
+            watchdog.armIfNeeded(hasHeldState: hasHeldState)
+        }
+
         guard let type = EventType(rawValue: packet.type) else { return }
 
         // `0x40` reuses `modifiers` for the GestureID, not modifier bits.
         let usesModifierBits = type != .customGesture
         if usesModifierBits {
+            currentModifiers = packet.modifiers
             updateSpacebar(for: packet.modifiers)
         }
         let flags = usesModifierBits ? mapModifiers(packet.modifiers) : []
@@ -131,10 +154,27 @@ final class EventInjector: @unchecked Sendable {
     var leftMouseDown: Bool { isLeftMouseDown }
     var rightMouseDown: Bool { isRightMouseDown }
     var spacebarHeld: Bool { isSpacebarHeld }
+    var modifiersHeld: UInt16 { currentModifiers }
+    var hasActiveKeys: Bool { !keyboardDown.isEmpty }
+
+    var hasHeldState: Bool {
+        isLeftMouseDown ||
+        isRightMouseDown ||
+        isStylusDown ||
+        isSpacebarHeld ||
+        (currentModifiers & ModifierMask.allKeyboard.rawValue) != 0 ||
+        !keyboardDown.isEmpty
+    }
+
+    @discardableResult
+    func checkWatchdogTimeout(now: TimeInterval? = nil) -> Bool {
+        watchdog.checkTimeout(now: now, hasHeldState: hasHeldState)
+    }
 
     // MARK: - Heartbeat & State Reconciliation (§3.2)
 
     func reconcile(with packet: VPadPacket) {
+        currentModifiers = packet.modifiers
         let flags = mapModifiers(packet.modifiers)
         updateSpacebar(for: packet.modifiers)
 
@@ -206,7 +246,7 @@ final class EventInjector: @unchecked Sendable {
         }
     }
 
-    /// Releases Space, mouse buttons and all tracked keyboard keys.
+    /// Releases Space, mouse buttons, held modifiers, and all tracked keyboard keys.
     func releaseAll() {
         if isDryRun {
             logDryRun("RELEASE_ALL")
@@ -216,6 +256,20 @@ final class EventInjector: @unchecked Sendable {
             isSpacebarHeld = false
             postKey(CGKeyCode(VPadKeycode.space), flags: [], down: false)
         }
+        if (currentModifiers & ModifierMask.command.rawValue) != 0 {
+            postKey(CGKeyCode(VPadKeycode.command), flags: [], down: false)
+        }
+        if (currentModifiers & ModifierMask.shift.rawValue) != 0 {
+            postKey(CGKeyCode(VPadKeycode.shift), flags: [], down: false)
+        }
+        if (currentModifiers & ModifierMask.option.rawValue) != 0 {
+            postKey(CGKeyCode(VPadKeycode.option), flags: [], down: false)
+        }
+        if (currentModifiers & ModifierMask.control.rawValue) != 0 {
+            postKey(CGKeyCode(VPadKeycode.control), flags: [], down: false)
+        }
+        currentModifiers = 0
+
         let location = currentPointerLocation()
         if isLeftMouseDown {
             isLeftMouseDown = false
@@ -233,6 +287,7 @@ final class EventInjector: @unchecked Sendable {
             isStylusInProximity = false
             postProximity(entering: false, flags: [])
         }
+        watchdog.armIfNeeded(hasHeldState: false)
     }
 
     func mapModifiers(_ modifiers: UInt16) -> CGEventFlags {

@@ -10,6 +10,7 @@
 		0699D6326CDE2946B100D0DC /* GestureEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = F724A3A974832BDC7E1217F9 /* GestureEngine.swift */; };
 		0FAC50F6B73667E260251E5F /* USBProxy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EC5F32F10FBECB7931B4F37 /* USBProxy.swift */; };
 		12AF59E6866C224EF1DF38F1 /* ModifierState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29ED733A107B2C21065B4E91 /* ModifierState.swift */; };
+		147F77ED8635631DE8CA0797 /* HostWatchdog.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC530FFE3748709D0D44D046 /* HostWatchdog.swift */; };
 		1B2C9BA5075D5DC9C6FE8016 /* EventInjectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C3ABED8A25AE93F6B551AA5 /* EventInjectorTests.swift */; };
 		1E08B46E6DE12E2B71125524 /* UDPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45B1FFBA13CF40C460D403C7 /* UDPServer.swift */; };
 		29ED7F912364646E8C4CF42E /* VPadProtocol in Frameworks */ = {isa = PBXBuildFile; productRef = 50BF8F48CC8700F136C84986 /* VPadProtocol */; };
@@ -102,6 +103,7 @@
 		C5D7D387E0D6D8AA058B48F4 /* MacHostTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MacHostTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE7844CA9290A3D04600C96D /* MacHostApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacHostApp.swift; sourceTree = "<group>"; };
 		EA21D4A82CF1437D4C1E5ADA /* TouchpadSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TouchpadSettings.swift; sourceTree = "<group>"; };
+		EC530FFE3748709D0D44D046 /* HostWatchdog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostWatchdog.swift; sourceTree = "<group>"; };
 		F30A3FE22F973326DB919A9E /* PairingProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingProfile.swift; sourceTree = "<group>"; };
 		F44A2EFE78297924A1B14B40 /* EventInjector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventInjector.swift; sourceTree = "<group>"; };
 		F724A3A974832BDC7E1217F9 /* GestureEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureEngine.swift; sourceTree = "<group>"; };
@@ -180,6 +182,7 @@
 				79E79667FDB4874B70727DA8 /* GestureMapView.swift */,
 				2D96DF6408B9397B911AF673 /* HostBeacon.swift */,
 				BB1BEA6FA3BD2EE9D61CC75D /* HostIdentity.swift */,
+				EC530FFE3748709D0D44D046 /* HostWatchdog.swift */,
 				CE7844CA9290A3D04600C96D /* MacHostApp.swift */,
 				344B61CAC1A2EBBCE0ED73C6 /* PairingView.swift */,
 				118F4834EE944827B95FE004 /* SessionState.swift */,
@@ -397,6 +400,7 @@
 				7165F1EAE7390130F5F08176 /* GestureMapper.swift in Sources */,
 				E8F873882B47FAC8C2E854C4 /* HostBeacon.swift in Sources */,
 				45F43047E1DA7B77FB7B1554 /* HostIdentity.swift in Sources */,
+				147F77ED8635631DE8CA0797 /* HostWatchdog.swift in Sources */,
 				584CF6EFC8B93791FDBAE7A1 /* MacHostApp.swift in Sources */,
 				3ABE6E325E8A54E4C7E36F4C /* PairingView.swift in Sources */,
 				CA9824D1D3F4E20B16BD7DF6 /* SessionState.swift in Sources */,

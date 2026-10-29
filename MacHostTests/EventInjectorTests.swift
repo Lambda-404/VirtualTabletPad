@@ -7,6 +7,7 @@ private final class TestDisplayState: @unchecked Sendable {
     var bounds = CGRect(x: 0, y: 0, width: 1920, height: 1080)
     var pointer = CGPoint(x: 500, y: 500)
     var warped: CGPoint?
+    var currentTime: TimeInterval = 1000.0
 }
 
 final class EventInjectorTests: XCTestCase {
@@ -24,6 +25,7 @@ final class EventInjectorTests: XCTestCase {
             screenBoundsProvider: { localState.bounds },
             pointerLocationProvider: { localState.pointer },
             warpCursorHandler: { localState.warped = $0 },
+            clockProvider: { localState.currentTime },
             isDryRun: false
         )
     }
@@ -356,5 +358,83 @@ final class EventInjectorTests: XCTestCase {
         injector.inject(heartbeat)
 
         XCTAssertEqual(poster.count, 0)
+    }
+
+    // MARK: - Watchdog Tests (§3.3)
+
+    func testWatchdogReleasesHeldCommandKeyAfterTimeout() {
+        // Press Command key down via keyboardPress
+        let cmdDown = VPadPacket.keyboardPress(keyCode: VPadKeycode.command, phase: .began, modifiers: ModifierMask.command.rawValue)
+        injector.inject(cmdDown)
+
+        XCTAssertTrue(injector.hasHeldState)
+        XCTAssertTrue(injector.hasActiveKeys)
+
+        // Check before 500ms timeout -> should not fire
+        let firedEarly = injector.checkWatchdogTimeout(now: state.currentTime + 0.200)
+        XCTAssertFalse(firedEarly)
+        XCTAssertTrue(injector.hasHeldState)
+
+        // Check after 500ms timeout (600ms elapsed) -> should fire and release Command key
+        state.currentTime += 0.600
+        let fired = injector.checkWatchdogTimeout(now: state.currentTime)
+        XCTAssertTrue(fired)
+        XCTAssertFalse(injector.hasHeldState)
+        XCTAssertFalse(injector.hasActiveKeys)
+
+        // Verify key release event was posted (CoreGraphics emits flagsChanged for modifier keys or keyUp)
+        let lastEvent = poster.events.last
+        XCTAssertTrue(lastEvent?.type == .flagsChanged || lastEvent?.type == .keyUp)
+    }
+
+    func testWatchdogReleasesHeldStylusStrokeAfterTimeout() {
+        let strokeBegan = VPadPacket.stylusStroke(x: 0.5, y: 0.5, pressure: 0.8, tiltX: 0, tiltY: 0, rollAngle: 0, phase: .began)
+        injector.inject(strokeBegan)
+
+        XCTAssertTrue(injector.stylusDown)
+        XCTAssertTrue(injector.hasHeldState)
+
+        // Advance beyond 500ms without new packets (connection loss mid-stroke)
+        state.currentTime += 0.550
+        let fired = injector.checkWatchdogTimeout(now: state.currentTime)
+        XCTAssertTrue(fired)
+        XCTAssertFalse(injector.stylusDown)
+        XCTAssertFalse(injector.hasHeldState)
+
+        // Verify leftMouseUp was posted to terminate the stroke
+        let mouseUps = poster.events.filter { $0.type == .leftMouseUp }
+        XCTAssertFalse(mouseUps.isEmpty)
+    }
+
+    func testWatchdogDoesNotFireIfPacketsKeepArriving() {
+        let strokeBegan = VPadPacket.stylusStroke(x: 0.5, y: 0.5, pressure: 0.8, tiltX: 0, tiltY: 0, rollAngle: 0, phase: .began)
+        injector.inject(strokeBegan)
+
+        // Packets arrive continuously every 100ms
+        for i in 1...6 {
+            state.currentTime += 0.100
+            let move = VPadPacket.stylusStroke(x: 0.5 + Float32(i) * 0.01, y: 0.5, pressure: 0.8, tiltX: 0, tiltY: 0, rollAngle: 0, phase: .moved)
+            injector.inject(move)
+            let fired = injector.checkWatchdogTimeout(now: state.currentTime)
+            XCTAssertFalse(fired)
+            XCTAssertTrue(injector.stylusDown)
+        }
+
+        XCTAssertTrue(injector.stylusDown)
+    }
+
+    func testWatchdogDoesNotFireWhenNoInputIsHeld() {
+        let move = VPadPacket.trackpadMove(dx: 5.0, dy: 5.0)
+        injector.inject(move)
+
+        XCTAssertFalse(injector.hasHeldState)
+
+        let countBefore = poster.count
+
+        // 1 second passes with no packets, but nothing was held
+        state.currentTime += 1.0
+        let fired = injector.checkWatchdogTimeout(now: state.currentTime)
+        XCTAssertFalse(fired)
+        XCTAssertEqual(poster.count, countBefore)
     }
 }

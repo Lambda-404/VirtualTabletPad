@@ -153,4 +153,8 @@ public enum VPadKeycode {
     public static let tab: UInt16 = 48
     public static let space: UInt16 = 49
     public static let delete: UInt16 = 51
+    public static let command: UInt16 = 55
+    public static let shift: UInt16 = 56
+    public static let option: UInt16 = 58
+    public static let control: UInt16 = 59
 }
