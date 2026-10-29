@@ -14,6 +14,7 @@
 		1B2C9BA5075D5DC9C6FE8016 /* EventInjectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C3ABED8A25AE93F6B551AA5 /* EventInjectorTests.swift */; };
 		1E08B46E6DE12E2B71125524 /* UDPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45B1FFBA13CF40C460D403C7 /* UDPServer.swift */; };
 		29ED7F912364646E8C4CF42E /* VPadProtocol in Frameworks */ = {isa = PBXBuildFile; productRef = 50BF8F48CC8700F136C84986 /* VPadProtocol */; };
+		2ABF9012A5E56955DFB8C8C7 /* AreaMappingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B197918FC4C272A41D2FF144 /* AreaMappingView.swift */; };
 		339E6F79B560C01ACCF9A92B /* EventInjector.swift in Sources */ = {isa = PBXBuildFile; fileRef = F44A2EFE78297924A1B14B40 /* EventInjector.swift */; };
 		36706010021AF27E43AF4A81 /* VPadProtocol in Frameworks */ = {isa = PBXBuildFile; productRef = F013512D136096C8C3CD7519 /* VPadProtocol */; };
 		3ABE6E325E8A54E4C7E36F4C /* PairingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 344B61CAC1A2EBBCE0ED73C6 /* PairingView.swift */; };
@@ -96,6 +97,7 @@
 		AC45B4E1CC1CFBE85A0466CB /* VPadProtocol */ = {isa = PBXFileReference; lastKnownFileType = folder; name = VPadProtocol; path = Packages/VPadProtocol; sourceTree = SOURCE_ROOT; };
 		AD88789C9A226C86A7AD8D21 /* FunctionKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FunctionKeys.swift; sourceTree = "<group>"; };
 		AFD07A15CB3A70CD892818F2 /* TCPServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCPServer.swift; sourceTree = "<group>"; };
+		B197918FC4C272A41D2FF144 /* AreaMappingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AreaMappingView.swift; sourceTree = "<group>"; };
 		B50CA2594657E98C737D855D /* ConnectionSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionSettingsView.swift; sourceTree = "<group>"; };
 		B513FB13ED23BA741ED26333 /* PencilStatusMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PencilStatusMonitor.swift; sourceTree = "<group>"; };
 		B635C96C68DE1FBB64E212C7 /* UDPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UDPClient.swift; sourceTree = "<group>"; };
@@ -175,6 +177,7 @@
 			isa = PBXGroup;
 			children = (
 				8A31AEE91F8C74300A6E7A0E /* AccessibilityManager.swift */,
+				B197918FC4C272A41D2FF144 /* AreaMappingView.swift */,
 				3F84D30D422716FCD073314A /* Assets.xcassets */,
 				F44A2EFE78297924A1B14B40 /* EventInjector.swift */,
 				5F501491CC39ABCDCF63DABE /* EventPosting.swift */,
@@ -394,6 +397,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D1C90935AD234F994599EABE /* AccessibilityManager.swift in Sources */,
+				2ABF9012A5E56955DFB8C8C7 /* AreaMappingView.swift in Sources */,
 				339E6F79B560C01ACCF9A92B /* EventInjector.swift in Sources */,
 				FC3968A65DD2C57BB905FEF2 /* EventPosting.swift in Sources */,
 				5FC51E08AD1FE60F606E13C0 /* GestureMapView.swift in Sources */,

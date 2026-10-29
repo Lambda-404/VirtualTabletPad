@@ -149,6 +149,11 @@ struct MacHostApp: App {
             PairingView()
         }
         .defaultSize(width: 400, height: 600)
+
+        Window("Tablet Mapping", id: AreaMappingView.windowID) {
+            AreaMappingView()
+        }
+        .defaultSize(width: 480, height: 380)
     }
 }
 
@@ -315,6 +320,11 @@ private struct HostMenuView: View {
 
         Button("Gesture Map…") {
             openWindow(id: GestureMapView.windowID)
+            NSApp.activate(ignoringOtherApps: true)
+        }
+
+        Button("Tablet Mapping…") {
+            openWindow(id: AreaMappingView.windowID)
             NSApp.activate(ignoringOtherApps: true)
         }
 

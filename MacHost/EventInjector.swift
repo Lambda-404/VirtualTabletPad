@@ -30,6 +30,7 @@ final class EventInjector: @unchecked Sendable {
     private var keyboardDown: [CGKeyCode: CGEventFlags] = [:]
     private var didWakeDisplay = false
     var watchdog: HostWatchdog!
+    var areaMapping: AreaMappingConfiguration = AreaMappingConfiguration()
 
     init(
         poster: any EventPosting = DefaultEventPoster(),
@@ -743,7 +744,13 @@ final class EventInjector: @unchecked Sendable {
     }
 
     private func clampToMainDisplay(_ point: CGPoint) -> CGPoint {
-        let bounds = mainDisplayBounds()
+        let bounds: CGRect
+        if let targetID = areaMapping.targetDisplayID, targetID != 0 {
+            let cb = CGDisplayBounds(targetID)
+            bounds = (cb.width > 0 && cb.height > 0) ? cb : mainDisplayBounds()
+        } else {
+            bounds = mainDisplayBounds()
+        }
         return CGPoint(
             x: min(max(point.x, bounds.minX), bounds.maxX - 1),
             y: min(max(point.y, bounds.minY), bounds.maxY - 1)
@@ -752,12 +759,17 @@ final class EventInjector: @unchecked Sendable {
 
     private func displayPoint(normalizedX: Float32, normalizedY: Float32) -> CGPoint? {
         guard normalizedX.isFinite, normalizedY.isFinite else { return nil }
-        let bounds = mainDisplayBounds()
-        let nx = min(max(CGFloat(normalizedX), 0), 1)
-        let ny = min(max(CGFloat(normalizedY), 0), 1)
-        return CGPoint(
-            x: bounds.minX + nx * max(bounds.width - 1, 1),
-            y: bounds.minY + ny * max(bounds.height - 1, 1)
+        let bounds: CGRect
+        if let targetID = areaMapping.targetDisplayID, targetID != 0 {
+            let cb = CGDisplayBounds(targetID)
+            bounds = (cb.width > 0 && cb.height > 0) ? cb : mainDisplayBounds()
+        } else {
+            bounds = mainDisplayBounds()
+        }
+        return areaMapping.map(
+            normalizedX: Double(normalizedX),
+            normalizedY: Double(normalizedY),
+            displayBounds: bounds
         )
     }
 
