@@ -1214,7 +1214,7 @@ final class HybridCanvasView: UIView {
         } else {
             rawPressure = 0.5
         }
-        let pressure = settings.pressureCurve.apply(rawPressure)
+        let pressure = settings.pressureCurveConfig.apply(rawPressure)
         let altitude = touch.altitudeAngle
         let azimuth = touch.azimuthAngle(in: self)
         let tiltX = Float32(cos(azimuth) * cos(altitude))

@@ -1,31 +1,35 @@
 import Combine
 import CoreGraphics
 import Foundation
+import VPadProtocol
 
 enum PressureCurve: String, CaseIterable, Codable, Identifiable, Sendable {
     case natural
     case soft
     case hard
+    case custom
 
     var id: String { rawValue }
     var title: String {
         switch self {
         case .natural: return "Natural"
-        case .soft: return "Soft / Sensitive"
-        case .hard: return "Hard / Controlled"
+        case .soft: return "Soft"
+        case .hard: return "Hard"
+        case .custom: return "Custom"
+        }
+    }
+
+    var config: PressureCurveConfiguration {
+        switch self {
+        case .natural: return PressureCurveConfiguration(preset: .natural)
+        case .soft: return PressureCurveConfiguration(preset: .soft)
+        case .hard: return PressureCurveConfiguration(preset: .hard)
+        case .custom: return PressureCurveConfiguration(preset: .custom)
         }
     }
 
     func apply(_ value: Float32) -> Float32 {
-        let clamped = min(max(value, 0), 1)
-        switch self {
-        case .natural:
-            return clamped
-        case .soft:
-            return pow(clamped, 0.72)
-        case .hard:
-            return pow(clamped, 1.45)
-        }
+        config.apply(value)
     }
 }
 
@@ -59,32 +63,66 @@ enum PencilStabilizationPreset: String, CaseIterable, Identifiable, Sendable {
 struct PencilInputSettings: Codable, Equatable, Sendable {
     static let defaultStabilization: Double = 0.35
 
-    var pressureCurve: PressureCurve
+    var pressureCurveConfig: PressureCurveConfiguration
     var penOnly: Bool
     /// 0 = follow the Pencil tip directly; 1 = maximum jitter smoothing.
     var stabilization: Double
 
+    var pressureCurve: PressureCurve {
+        get {
+            switch pressureCurveConfig.preset {
+            case .natural: return .natural
+            case .soft: return .soft
+            case .hard: return .hard
+            case .custom: return .custom
+            }
+        }
+        set {
+            switch newValue {
+            case .natural: pressureCurveConfig.selectPreset(.natural)
+            case .soft: pressureCurveConfig.selectPreset(.soft)
+            case .hard: pressureCurveConfig.selectPreset(.hard)
+            case .custom: pressureCurveConfig.selectPreset(.custom)
+            }
+        }
+    }
+
     init(
-        pressureCurve: PressureCurve = .natural,
+        pressureCurveConfig: PressureCurveConfiguration = PressureCurveConfiguration(),
         penOnly: Bool = false,
         stabilization: Double = PencilInputSettings.defaultStabilization
     ) {
-        self.pressureCurve = pressureCurve
+        self.pressureCurveConfig = pressureCurveConfig
+        self.penOnly = penOnly
+        self.stabilization = Self.normalizedStabilization(stabilization)
+    }
+
+    init(
+        pressureCurve: PressureCurve,
+        penOnly: Bool = false,
+        stabilization: Double = PencilInputSettings.defaultStabilization
+    ) {
+        self.pressureCurveConfig = pressureCurve.config
         self.penOnly = penOnly
         self.stabilization = Self.normalizedStabilization(stabilization)
     }
 
     private enum CodingKeys: String, CodingKey {
+        case pressureCurveConfig
         case pressureCurve
         case penOnly
         case stabilization
     }
 
-    /// Old stored payloads only contain pressureCurve/penOnly; decode the new
-    /// key with a default instead of failing the whole settings record.
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        pressureCurve = try container.decodeIfPresent(PressureCurve.self, forKey: .pressureCurve) ?? .natural
+        if let config = try container.decodeIfPresent(PressureCurveConfiguration.self, forKey: .pressureCurveConfig) {
+            pressureCurveConfig = config
+        } else if let legacy = try container.decodeIfPresent(PressureCurve.self, forKey: .pressureCurve) {
+            pressureCurveConfig = legacy.config
+        } else {
+            pressureCurveConfig = PressureCurveConfiguration()
+        }
         penOnly = try container.decodeIfPresent(Bool.self, forKey: .penOnly) ?? false
         stabilization = Self.normalizedStabilization(
             try container.decodeIfPresent(Double.self, forKey: .stabilization)
@@ -94,6 +132,7 @@ struct PencilInputSettings: Codable, Equatable, Sendable {
 
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(pressureCurveConfig, forKey: .pressureCurveConfig)
         try container.encode(pressureCurve, forKey: .pressureCurve)
         try container.encode(penOnly, forKey: .penOnly)
         try container.encode(stabilization, forKey: .stabilization)

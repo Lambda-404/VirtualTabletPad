@@ -228,19 +228,14 @@ struct WorkspaceSettingsView: View {
                     .font(.system(size: 12, design: .rounded))
                     .foregroundStyle(.secondary)
 
-                Picker("Pressure curve", selection: Binding(
-                    get: { pencilInputStore.settings.pressureCurve },
+                PressureCurveEditorView(config: Binding(
+                    get: { pencilInputStore.settings.pressureCurveConfig },
                     set: { value in
                         var next = pencilInputStore.settings
-                        next.pressureCurve = value
+                        next.pressureCurveConfig = value
                         pencilInputStore.update(next)
                     }
-                )) {
-                    ForEach(PressureCurve.allCases) { curve in
-                        Text(curve.title).tag(curve)
-                    }
-                }
-                .pickerStyle(.inline)
+                ))
 
                 Toggle("Pen-only input (palm rejection)", isOn: Binding(
                     get: { pencilInputStore.settings.penOnly },
@@ -251,9 +246,6 @@ struct WorkspaceSettingsView: View {
                     }
                 ))
                 .font(.system(size: 13, design: .rounded))
-                Text("When enabled, direct finger touches are ignored; use the Pencil for drawing. Touchpad gestures remain available when disabled.")
-                    .font(.system(size: 11, design: .rounded))
-                    .foregroundStyle(.secondary)
 
                 Divider().overlay(Color.white.opacity(0.08))
                 Text("Keyboard").font(.system(size: 18, weight: .semibold, design: .rounded))
@@ -543,6 +535,101 @@ struct WorkspaceSettingsView: View {
             }
             .padding(24)
             .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+}
+
+struct PressureCurveEditorView: View {
+    @Binding var config: PressureCurveConfiguration
+
+    var body: some View {
+        VStack(spacing: 10) {
+            Picker("Curve Preset", selection: Binding(
+                get: { config.preset },
+                set: { config.selectPreset($0) }
+            )) {
+                ForEach(PressureCurveConfiguration.Preset.allCases) { preset in
+                    Text(preset.title).tag(preset)
+                }
+            }
+            .pickerStyle(.segmented)
+
+            GeometryReader { geo in
+                let size = min(geo.size.width, geo.size.height)
+                ZStack {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.white.opacity(0.04))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                        )
+
+                    // Grid lines (25%, 50%, 75%)
+                    Path { path in
+                        for frac in [0.25, 0.5, 0.75] {
+                            let pos = size * frac
+                            path.move(to: CGPoint(x: pos, y: 0))
+                            path.addLine(to: CGPoint(x: pos, y: size))
+                            path.move(to: CGPoint(x: 0, y: pos))
+                            path.addLine(to: CGPoint(x: size, y: pos))
+                        }
+                    }
+                    .stroke(Color.white.opacity(0.06), lineWidth: 1)
+
+                    // Linear identity diagonal
+                    Path { path in
+                        path.move(to: CGPoint(x: 0, y: size))
+                        path.addLine(to: CGPoint(x: size, y: 0))
+                    }
+                    .stroke(Color.white.opacity(0.15), style: StrokeStyle(lineWidth: 1, dash: [4, 4]))
+
+                    // 256-point LUT curve
+                    Path { path in
+                        path.move(to: CGPoint(x: 0, y: size))
+                        for i in 1..<256 {
+                            let x = (CGFloat(i) / 255.0) * size
+                            let y = (1.0 - CGFloat(config.lookupTable[i])) * size
+                            path.addLine(to: CGPoint(x: x, y: y))
+                        }
+                    }
+                    .stroke(Color.accentColor, lineWidth: 2.5)
+
+                    // Control point handles in custom mode
+                    if config.preset == .custom {
+                        let cp1 = CGPoint(x: config.controlPoint1.x * size, y: (1.0 - config.controlPoint1.y) * size)
+                        let cp2 = CGPoint(x: config.controlPoint2.x * size, y: (1.0 - config.controlPoint2.y) * size)
+
+                        Circle()
+                            .fill(Color.orange)
+                            .frame(width: 14, height: 14)
+                            .position(cp1)
+                            .gesture(
+                                DragGesture()
+                                    .onChanged { value in
+                                        let nx = min(max(value.location.x / size, 0), 1)
+                                        let ny = min(max(1.0 - value.location.y / size, 0), 1)
+                                        config.updateControlPoints(p1: CGPoint(x: nx, y: ny), p2: config.controlPoint2)
+                                    }
+                            )
+
+                        Circle()
+                            .fill(Color.orange)
+                            .frame(width: 14, height: 14)
+                            .position(cp2)
+                            .gesture(
+                                DragGesture()
+                                    .onChanged { value in
+                                        let nx = min(max(value.location.x / size, 0), 1)
+                                        let ny = min(max(1.0 - value.location.y / size, 0), 1)
+                                        config.updateControlPoints(p1: config.controlPoint1, p2: CGPoint(x: nx, y: ny))
+                                    }
+                            )
+                    }
+                }
+                .frame(width: size, height: size)
+                .frame(maxWidth: .infinity)
+            }
+            .frame(height: 140)
         }
     }
 }
