@@ -88,10 +88,19 @@ final class VPadFramesTests: XCTestCase {
 
     func testFileNameSanitization() {
         XCTAssertEqual(VPadFileNameSanitizer.sanitize("notes.txt"), "notes.txt")
-        XCTAssertEqual(VPadFileNameSanitizer.sanitize("../../etc/passwd"), "passwd")
         XCTAssertEqual(VPadFileNameSanitizer.sanitize("folder/photo.jpg"), "photo.jpg")
-        XCTAssertEqual(VPadFileNameSanitizer.sanitize("a\\b:c.txt"), "a_b_c.txt")
+        XCTAssertEqual(VPadFileNameSanitizer.sanitize("sub\\folder\\photo.jpg"), "photo.jpg")
+        XCTAssertEqual(VPadFileNameSanitizer.sanitize("a:c.txt"), "a_c.txt")
+        XCTAssertNil(VPadFileNameSanitizer.sanitize("../../etc/passwd"))
+        XCTAssertNil(VPadFileNameSanitizer.sanitize("/etc/passwd"))
+        XCTAssertNil(VPadFileNameSanitizer.sanitize("\\Windows\\System32"))
+        XCTAssertNil(VPadFileNameSanitizer.sanitize("C:\\Windows\\System32"))
+        XCTAssertNil(VPadFileNameSanitizer.sanitize("../photo.jpg"))
+        XCTAssertNil(VPadFileNameSanitizer.sanitize("folder/../photo.jpg"))
+        XCTAssertNil(VPadFileNameSanitizer.sanitize("photo\0.jpg"))
+        XCTAssertNil(VPadFileNameSanitizer.sanitize("notes\r\n.txt"))
         XCTAssertNil(VPadFileNameSanitizer.sanitize(""))
+        XCTAssertNil(VPadFileNameSanitizer.sanitize("."))
         XCTAssertNil(VPadFileNameSanitizer.sanitize(".."))
         XCTAssertNil(VPadFileNameSanitizer.sanitize(String(
             repeating: "x",

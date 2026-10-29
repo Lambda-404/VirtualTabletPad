@@ -1,18 +1,17 @@
 import CryptoKit
 import Foundation
 import os
-import VPadProtocol
 
-enum FileReceiverOutcome {
+public enum FileReceiverOutcome: Equatable, Sendable {
     case none
     case status(FileStatus, fileName: String?)
     case protocolError(ProtocolErrorCode)
 }
 
 /// Receives one file at a time from the TCP control connection and streams it
-/// to disk, verifying the SHA-256 trailer before reporting success.
-final class FileReceiver: @unchecked Sendable {
-    private static let log = Logger(subsystem: "com.vpad.MacHost", category: "files")
+/// to disk in a dedicated directory, verifying SHA-256 and enforcing size & name sanitization.
+public final class FileReceiver: @unchecked Sendable {
+    private static let log = Logger(subsystem: "com.vpad.FileReceiver", category: "files")
 
     private struct Transfer {
         let url: URL
@@ -23,25 +22,39 @@ final class FileReceiver: @unchecked Sendable {
         var hasher: SHA256
     }
 
-    private let uploadsDirectory: URL
+    public let uploadsDirectory: URL
+    public let maxFileSize: UInt64
+    public var confirmationHandler: (@Sendable (_ fileName: String, _ fileSize: UInt64) -> Bool)?
     private var transfer: Transfer?
 
-    init(uploadsDirectory: URL = FileReceiver.defaultUploadsDirectory()) {
+    public init(
+        uploadsDirectory: URL = FileReceiver.defaultUploadsDirectory(),
+        maxFileSize: UInt64 = VPadConstants.maxFileSize,
+        confirmationHandler: (@Sendable (String, UInt64) -> Bool)? = nil
+    ) {
         self.uploadsDirectory = uploadsDirectory.standardizedFileURL
+        self.maxFileSize = maxFileSize
+        self.confirmationHandler = confirmationHandler
     }
 
-    static func defaultUploadsDirectory() -> URL {
+    public static func defaultUploadsDirectory() -> URL {
         if let override = ProcessInfo.processInfo.environment["VPAD_UPLOADS_DIR"],
            !override.isEmpty {
             return URL(fileURLWithPath: override, isDirectory: true)
         }
+        #if os(macOS)
         let downloads = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first
             ?? FileManager.default.homeDirectoryForCurrentUser
                 .appendingPathComponent("Downloads", isDirectory: true)
         return downloads.appendingPathComponent(VPadConstants.uploadsFolderName, isDirectory: true)
+        #else
+        let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+            ?? URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+        return docs.appendingPathComponent(VPadConstants.uploadsFolderName, isDirectory: true)
+        #endif
     }
 
-    func handle(_ frame: VPadFrame) -> FileReceiverOutcome {
+    public func handle(_ frame: VPadFrame) -> FileReceiverOutcome {
         switch frame.type {
         case .fileHeader:
             return handleHeader(frame.body)
@@ -57,7 +70,7 @@ final class FileReceiver: @unchecked Sendable {
     }
 
     /// Call on disconnect, session replacement or app shutdown.
-    func abort() {
+    public func abort() {
         finishTransfer(deleteFile: true)
     }
 
@@ -69,10 +82,18 @@ final class FileReceiver: @unchecked Sendable {
             return .protocolError(.malformedFrame)
         }
         guard let header = FileHeaderPayload.decode(body),
-              header.fileSize <= VPadConstants.maxFileSize,
+              header.fileSize <= maxFileSize,
+              header.fileSize > 0,
               let sanitized = VPadFileNameSanitizer.sanitize(header.fileName) else {
-            Self.log.error("invalid file header")
+            Self.log.error("invalid file header: size exceeded or invalid name")
             return .protocolError(.malformedFrame)
+        }
+
+        if let handler = confirmationHandler {
+            guard handler(sanitized, header.fileSize) else {
+                Self.log.info("transfer rejected by user confirmation for \(sanitized, privacy: .private)")
+                return .status(.cancelled, fileName: sanitized)
+            }
         }
 
         do {

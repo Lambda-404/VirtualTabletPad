@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import Network
 import os
@@ -22,7 +23,7 @@ private final class TCPControlConnection: @unchecked Sendable {
     private let privateKey = CryptoManager.shared.generateKeyPair()
     private var session: SessionCrypto?
     private var decoder = VPadFrameDecoder()
-    private var fileReceiver = FileReceiver()
+    private var fileReceiver: FileReceiver
     private var state: TCPConnectionState = .awaitingHello
     private var handshakeWorkItem: DispatchWorkItem?
     private var lastSendError: String?
@@ -32,6 +33,25 @@ private final class TCPControlConnection: @unchecked Sendable {
         self.server = server
         self.connection = connection
         self.queue = queue
+        self.fileReceiver = FileReceiver(confirmationHandler: { fileName, fileSize in
+            #if DEBUG
+            if ProcessInfo.processInfo.environment["VPAD_AUTO_ACCEPT_FILES"] == "1" ||
+               ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {
+                return true
+            }
+            #endif
+            return DispatchQueue.main.sync {
+                let alert = NSAlert()
+                alert.messageText = "Accept Incoming File?"
+                let formattedSize = ByteCountFormatter.string(fromByteCount: Int64(fileSize), countStyle: .file)
+                alert.informativeText = "The connected iPad wants to send “\(fileName)” (\(formattedSize)). Do you want to receive it?"
+                alert.addButton(withTitle: "Accept")
+                alert.addButton(withTitle: "Decline")
+                alert.alertStyle = .informational
+                NSApp.activate(ignoringOtherApps: true)
+                return alert.runModal() == .alertFirstButtonReturn
+            }
+        })
     }
 
     private var peerDescription: String {

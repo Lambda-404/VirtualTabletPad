@@ -11,7 +11,6 @@
 		0FAC50F6B73667E260251E5F /* USBProxy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EC5F32F10FBECB7931B4F37 /* USBProxy.swift */; };
 		12AF59E6866C224EF1DF38F1 /* ModifierState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29ED733A107B2C21065B4E91 /* ModifierState.swift */; };
 		1E08B46E6DE12E2B71125524 /* UDPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45B1FFBA13CF40C460D403C7 /* UDPServer.swift */; };
-		2C961CE79900459C7D893524 /* FileReceiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA3DAEA7745FDBFEB336BA66 /* FileReceiver.swift */; };
 		339E6F79B560C01ACCF9A92B /* EventInjector.swift in Sources */ = {isa = PBXBuildFile; fileRef = F44A2EFE78297924A1B14B40 /* EventInjector.swift */; };
 		36706010021AF27E43AF4A81 /* VPadProtocol in Frameworks */ = {isa = PBXBuildFile; productRef = F013512D136096C8C3CD7519 /* VPadProtocol */; };
 		3ABE6E325E8A54E4C7E36F4C /* PairingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 344B61CAC1A2EBBCE0ED73C6 /* PairingView.swift */; };
@@ -92,7 +91,6 @@
 		F724A3A974832BDC7E1217F9 /* GestureEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureEngine.swift; sourceTree = "<group>"; };
 		F7C42110E0E935E97D535F18 /* ClientIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClientIdentity.swift; sourceTree = "<group>"; };
 		F901100F85DA31ED6D05A4A6 /* GestureMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureMapper.swift; sourceTree = "<group>"; };
-		FA3DAEA7745FDBFEB336BA66 /* FileReceiver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileReceiver.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -153,7 +151,6 @@
 				8A31AEE91F8C74300A6E7A0E /* AccessibilityManager.swift */,
 				3F84D30D422716FCD073314A /* Assets.xcassets */,
 				F44A2EFE78297924A1B14B40 /* EventInjector.swift */,
-				FA3DAEA7745FDBFEB336BA66 /* FileReceiver.swift */,
 				F901100F85DA31ED6D05A4A6 /* GestureMapper.swift */,
 				79E79667FDB4874B70727DA8 /* GestureMapView.swift */,
 				2D96DF6408B9397B911AF673 /* HostBeacon.swift */,
@@ -336,7 +333,6 @@
 			files = (
 				D1C90935AD234F994599EABE /* AccessibilityManager.swift in Sources */,
 				339E6F79B560C01ACCF9A92B /* EventInjector.swift in Sources */,
-				2C961CE79900459C7D893524 /* FileReceiver.swift in Sources */,
 				5FC51E08AD1FE60F606E13C0 /* GestureMapView.swift in Sources */,
 				7165F1EAE7390130F5F08176 /* GestureMapper.swift in Sources */,
 				E8F873882B47FAC8C2E854C4 /* HostBeacon.swift in Sources */,

@@ -230,17 +230,53 @@ public struct FileStatusPayload: Equatable, Sendable {
 // MARK: - File name sanitization
 
 public enum VPadFileNameSanitizer {
-    /// Strips path components and control characters. Returns nil when the
-    /// remaining name is empty, a traversal sentinel, or too long.
+    /// Strips path components and control characters. Rejects `..`, absolute paths,
+    /// null bytes, and control characters. Returns nil when the remaining name is empty,
+    /// a traversal sentinel, or too long.
     public static func sanitize(_ raw: String) -> String? {
         guard !raw.isEmpty else { return nil }
+
+        // Reject null bytes and control characters
+        guard !raw.unicodeScalars.contains(where: { $0.value < 32 || $0.value == 127 }) else {
+            return nil
+        }
+
         let normalized = raw.precomposedStringWithCanonicalMapping
-        var candidate = (normalized as NSString).lastPathComponent
+
+        // Reject absolute paths (/ or \) or Windows drive letters (e.g. C:)
+        if normalized.hasPrefix("/") || normalized.hasPrefix("\\") {
+            return nil
+        }
+        if normalized.count >= 3,
+           let first = normalized.first, first.isLetter,
+           normalized[normalized.index(after: normalized.startIndex)] == ":" {
+            let third = normalized[normalized.index(normalized.startIndex, offsetBy: 2)]
+            if third == "/" || third == "\\" {
+                return nil
+            }
+        }
+
+        // Split by both POSIX and Windows path separators
+        let pathSeparators = CharacterSet(charactersIn: "/\\")
+        let components = normalized.components(separatedBy: pathSeparators)
+
+        // Reject if any path component is ".." or "."
+        if components.contains("..") || components.contains(".") {
+            return nil
+        }
+
+        // Strip path components by taking the last component
+        guard let last = components.last, !last.isEmpty else {
+            return nil
+        }
+
+        // Forbidden characters within a filename
         let forbidden = CharacterSet(charactersIn: "/\\:\u{0000}").union(.controlCharacters)
-        candidate = candidate
+        let candidate = last
             .components(separatedBy: forbidden)
             .joined(separator: "_")
             .trimmingCharacters(in: .whitespacesAndNewlines)
+
         guard !candidate.isEmpty, candidate != ".", candidate != ".." else {
             return nil
         }
