@@ -73,12 +73,67 @@
   * **创作快捷区**：撤销/重做、笔刷大小微调、软键盘切换。
 * **键盘模式自适应**：呼出软键盘时，工作区智能折叠为双行紧凑 F 键与修饰键面板，保持全键盘效率。
 
-### 5. 🔒 端到端军事级加密（E2EE）
-* **X25519 + HKDF-SHA256 + AES-GCM-256**：会话握手即协商临时密钥，所有触控、笔迹与键盘数据全程加密。
-* **固化 28 字节紧凑报文（`VPadPacket`）**：热循环路径零堆内存分配（Zero Allocation），自带防重放计数器。
+### 5. 🔒 严谨密码学与零分配传输协议
+* **Ed25519 + X25519 + HKDF-SHA256 + AES-GCM-256**：双向身份签名验证、临时会话密钥协商、定向密钥导出与 128 位 AEAD 完整性认证，杜绝中间人攻击与篡改。
+* **固化 28 字节紧凑报文（`VPadPacket`）**：240 Hz 热循环输入路径实现零堆内存分配（Zero Allocation），内置 64 包滑动窗口防重放过滤机制。
 
 ### 6. 📁 隔空秒传（Drop Transfer）
 * 支持从 iPad 直接向 Mac 拖拽/发送大文件或文档，传输全程通过分片加密流传输，并在 Mac 端进行 SHA-256 哈希校验。
+
+---
+
+## ⚖️ 方案横向对比
+
+VirtualTabletPad 专注于**纯数字化手写与触控输入协议**，不传输压缩视频流，因此免去了视频编解码带来的画质损失、高发热与屏幕延迟。
+
+| 特性 / 解决方案 | VirtualTabletPad | Apple Sidecar | 通用控制 (Universal Control) | Astropad Studio | Duet Display |
+|---|:---:|:---:|:---:|:---:|:---:|
+| **核心定位** | 专业数位板与触控板 | 屏幕镜像与扩展 | 跨设备光标共享 | 专业数位板 | 第二便携显示屏 |
+| **视频流开销** | **无**（直接看 Mac 屏幕绘图） | 较高（H.264/HEVC 串流） | 无 | 较高（专有视频流） | 较高（虚拟屏幕驱动） |
+| **Apple Pencil Pro 硬件特性** | **全面支持**（侧旋/轻捏/触觉反馈） | 仅基础压感/倾角 | 不支持 Mac 绘图应用 | [TODO(human): 实机验证侧旋兼容度] | 仅基础压感 |
+| **输入协议与采样率** | 240 Hz 聚合 UDP（E2EE 加密） | 系统内部 IPC | 系统内部 IPC | 专有 TCP/USB | 专有协议 |
+| **往返传输 RTT（USB 直连）** | **~1.4 ms**（详见 [docs/latency.md](docs/latency.md)） | ~15–30 ms 画面往返 | ~5–12 ms | [TODO(human): 统一环境下基准测试] | ~20–40 ms |
+| **自定义压感曲线与屏幕映射** | **支持**（三次贝塞尔 LUT 与多屏映射） | 不支持 | 不支持 | 支持 | 仅有限映射 |
+| **多点触控板模式** | **支持**（1–5 指完整手势） | 不支持 | 不支持 | 不支持 | 仅有限模拟 |
+| **开源协议与商业模式** | **完全开源 (GPL-3.0)** | 苹果闭源独占 | 苹果闭源独占 | 商业订阅制 | 商业订阅制 |
+
+---
+
+## 📚 技术架构与深度文档
+
+深入了解 VirtualTabletPad 的底层协议设计、延迟测试基准与驱动架构：
+
+- [通信协议规范 (v2)](docs/protocol.md)：包含完整握手流程、56 字节 UDP 报文外壳、28 字节 `VPadPacket` 布局、Windows `InjectSyntheticPointerInput` 与 Linux `uinput` 适配指南及测试向量。
+- [延迟测量基准与流水线解析](docs/latency.md)：往返 RTT 与“笔尖到光标”玻璃到玻璃延迟流水线剖析，附带 `Tools/latency-bench` 自测工具。
+- [安全性架构与威胁模型](docs/security.md)：双向认证、防重放滑动窗口、文件沙箱隔离与解析器模糊测试报告。
+- [专业创作软件兼容性矩阵](docs/compatibility.md)：覆盖 Photoshop、Clip Studio Paint、Krita、Blender、Illustrator、Affinity 等软件的压感/倾角/侧旋支持实测。
+- [DriverKit 虚拟 HID 驱动可行性分析](docs/driverkit_feasibility.md)：`IOUserHIDEventDriver` 与 `CGEvent` 合成事件注入的架构优劣势评估。
+
+---
+
+## 🔧 常见问题与排错指南
+
+#### 1. Mac 端对 Pencil 笔触或触控无响应
+- 请确认已在 **系统设置 → 隐私与安全性 → 辅助功能** 中授予 `VirtualTabletPad` 权限。
+- 若需彻底重置辅助功能权限缓存，请在终端执行：
+  ```bash
+  tccutil reset Accessibility com.vpad.MacHost
+  ```
+- 重新勾选授权后重启 MacHost。
+
+#### 2. USB-C 直连显示“未连接”
+- 请确保使用的是支持数据传输的高速线缆（非仅能充电的普通充电线）。
+- 连接 iPad 时如果弹出“信任此电脑”，请点击“信任”。
+- VirtualTabletPad 会自动识别 `169.254.x.x` 本地链路地址或建立 `usbmuxd` 隧道。
+
+#### 3. Wi-Fi 模式下无法扫描到 Mac 主机
+- 确保 Mac 与 iPad 处于同一 Wi-Fi 子网或局域网。
+- 确认 Mac 防火墙没有拦截 UDP `8888` 端口与 TCP `8889` 端口的入站连接。
+- 在部分隔离组网的企业 Wi-Fi 下，建议优先使用 **USB-C 有线直连** 或 **扫码直连**。
+
+#### 4. 笔迹抖动或手掌误触
+- 可在 Pencil 设置中开启 **“纯手写笔模式 (Palm Rejection)”**，此时触摸屏将彻底忽略手部电容信号。
+- 调节 **“抗抖动 (Stabilization)”** 滑块，滤除手部细微生理震颤。
 
 ---
 

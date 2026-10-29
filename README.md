@@ -73,12 +73,67 @@ It features ultra-low round-trip latency **USB-C connectivity** (~1.4 ms RTT, no
   * **Creative Controls**: Quick Undo/Redo, brush size increments, and software keyboard triggers.
 * **Adaptive Keyboard Mode**: Auto-collapses into a dual-row F-key and modifier strip whenever typing is required.
 
-### 5. 🔒 End-to-End Encryption (E2EE)
-* **X25519 + HKDF-SHA256 + AES-GCM-256**: Ephemeral session key negotiation ensures every touch, stroke, and keypress is tamper-proof and private.
-* **Frozen 28-Byte Binary Packet (`VPadPacket`)**: Zero heap allocations in the hot input loop; built-in anti-replay counters.
+### 5. 🔒 Cryptographic Security & Zero-Allocation Transport
+* **Ed25519 + X25519 + HKDF-SHA256 + AES-GCM-256**: Mutual cryptographic identity authentication, ephemeral session key exchange, directional key schedules, and 128-bit AEAD tags ensure all input and control data are tamper-proof and confidential.
+* **Frozen 28-Byte Binary Packet (`VPadPacket`)**: Zero heap allocations in the 240 Hz hot input loop; built-in 64-packet sliding window anti-replay verification.
 
 ### 6. 📁 Drag & Drop File Transfer
 * Send files between iPad and Mac directly with encrypted chunk streaming and SHA-256 verification.
+
+---
+
+## ⚖️ How VirtualTabletPad Compares
+
+VirtualTabletPad focuses exclusively on **input digitization and gesture control** rather than compressed video display streaming.
+
+| Feature / Solution | VirtualTabletPad | Apple Sidecar | Universal Control | Astropad Studio | Duet Display |
+|---|:---:|:---:|:---:|:---:|:---:|
+| **Primary Goal** | Graphics Tablet & Trackpad | Screen Extension | Cursor Sharing | Graphics Tablet | Second Display |
+| **Video Stream Overhead** | **None** (Draw on Mac screen) | High (H.264/HEVC) | None | High (Proprietary video) | High (Virtual display) |
+| **Apple Pencil Pro Support** | **Full** (Roll, Squeeze, Haptics) | Basic pressure/tilt | None (iPad apps only) | [TODO(human): verify Pencil Pro roll support] | Basic |
+| **Input Protocol & Sampling** | 240 Hz Coalesced UDP (E2EE) | System IPC | System IPC | Proprietary TCP/USB | Proprietary |
+| **Round-Trip Latency (USB)** | **~1.4 ms** (see [docs/latency.md](docs/latency.md)) | ~15–30 ms (video RTT) | ~5–12 ms | [TODO(human): benchmark Astropad RTT] | ~20–40 ms |
+| **Custom Curves & Area Mapping** | **Yes** (Bézier LUT & Displays) | No | No | Yes | Limited |
+| **Multi-Touch Trackpad Mode** | **Yes** (1–5 finger gestures) | No | No | No | Limited |
+| **License & Privacy** | **Open Source (GPL-3.0)** | Closed source | Closed source | Proprietary Subscription | Proprietary Subscription |
+
+---
+
+## 📚 Technical Documentation
+
+Deep dive into the underlying protocols, benchmarking, and architectural specifications:
+
+- [Protocol Specification (v2)](docs/protocol.md): Complete wire format, 56-byte UDP datagram envelope, 28-byte `VPadPacket` layout, Windows `InjectSyntheticPointerInput`, and Linux `uinput` implementation notes.
+- [Latency Benchmark & Pipeline](docs/latency.md): RTT vs glass-to-glass touch-to-cursor analysis and `Tools/latency-bench` loopback harness.
+- [Security Architecture & Threat Model](docs/security.md): Mutual authentication, sliding window replay protection, file transfer sandbox, and parser fuzz testing.
+- [Application Compatibility Matrix](docs/compatibility.md): Tested compatibility with Photoshop, Clip Studio Paint, Krita, Blender, Illustrator, and Affinity Designer.
+- [DriverKit Virtual HID Feasibility](docs/driverkit_feasibility.md): Architectural analysis of `IOUserHIDEventDriver` vs `CGEvent` synthetic injection.
+
+---
+
+## 🔧 Troubleshooting & FAQ
+
+#### 1. Mac does not respond to Pencil or touch input
+- Ensure Accessibility permissions are granted in **System Settings → Privacy & Security → Accessibility** for `VirtualTabletPad`.
+- To completely reset Accessibility permissions:
+  ```bash
+  tccutil reset Accessibility com.vpad.MacHost
+  ```
+- Restart the MacHost app after re-granting permission.
+
+#### 2. USB connection shows "Disconnected"
+- Check that the USB-C cable supports data transfer (not a charge-only cable).
+- Ensure the iPad shows the trust dialog when plugged in and select "Trust this Computer".
+- VirtualTabletPad will automatically detect the link-local `169.254.x.x` address or `usbmuxd` tunnel.
+
+#### 3. Wi-Fi connection fails to discover host
+- Ensure both Mac and iPad are connected to the same Wi-Fi subnet or VLAN.
+- Verify your Mac's firewall is not blocking incoming UDP packets on port `8888` and TCP packets on port `8889`.
+- If Bonjour discovery is blocked on managed corporate networks, use **USB-C Cable Mode** or direct QR code pairing.
+
+#### 4. Hand tremors or unexpected palm touches
+- Enable **Pen-only input (palm rejection)** in the Pencil tab to reject all capacitive finger touches while using the stylus.
+- Adjust the **Stabilization** slider to smooth high-frequency hand tremors.
 
 ---
 
