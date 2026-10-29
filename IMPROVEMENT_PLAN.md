@@ -211,3 +211,4 @@ Each feature gets its own branch and settings UI, with settings stored in a `Cod
 | 2.1  | done   | agent/2.1-testable-injection | EventPosting protocol, MockEventPoster, deterministic EventInjector, MacHostTests |
 | 2.2  | done   | agent/2.2-tablet-fields-proximity | Tablet fields (pressure, tilt, rotation), proximity state machine, lifecycle tests |
 | 2.3  | done   | agent/2.3-event-inspector | TabletEventInspector tool (live pressure, tilt gauge, rotation, proximity, log) |
+| 2.4  | done   | agent/2.4-compat-matrix | Compatibility matrix table in docs/compatibility.md |
