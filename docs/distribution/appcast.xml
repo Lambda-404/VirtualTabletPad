@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <channel>
+        <title>VirtualTabletPad Updates</title>
+        <link>https://github.com/Lambda-404/VirtualTabletPad</link>
+        <description>Automated release updates for VirtualTabletPad macOS Host.</description>
+        <language>en</language>
+        <item>
+            <title>VirtualTabletPad 2.0.0</title>
+            <pubDate>Thu, 29 Oct 2026 12:00:00 +0000</pubDate>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:releaseNotesLink>https://github.com/Lambda-404/VirtualTabletPad/releases/tag/v2.0.0</sparkle:releaseNotesLink>
+            <enclosure
+                url="https://github.com/Lambda-404/VirtualTabletPad/releases/download/v2.0.0/VirtualTabletPad-v2.0.0.dmg"
+                sparkle:version="2.0.0"
+                sparkle:shortVersionString="2.0.0"
+                sparkle:edSignature="TODO_HUMAN_SIGN_WITH_SPARKLE_BIN"
+                length="15000000"
+                type="application/octet-stream" />
+        </item>
+    </channel>
+</rss>

@@ -225,3 +225,4 @@ Each feature gets its own branch and settings UI, with settings stored in a `Cod
 | 4.5  | done   | agent/4.5-protocol-spec | Complete wire spec in docs/protocol.md (handshake, 56B UDP datagram, 28B VPadPacket, Win/Linux notes, test vectors) |
 | 5.1  | done   | agent/5.1-readme-rewrite | README & README_ZH rewrite: cryptographic primitives, comparison table, troubleshooting, doc links |
 | 5.2  | done   | agent/5.2-release-workflow | Release workflow (.github/workflows/release.yml) with DMG packaging, optional codesign & notarization, Makefile target |
+| 5.3  | done   | agent/5.3-distribution-extras | Distribution drafts: Homebrew Cask (Casks/virtualtabletpad.rb), Sparkle appcast.xml, TestFlight notes |
