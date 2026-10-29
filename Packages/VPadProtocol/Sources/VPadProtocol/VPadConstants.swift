@@ -18,6 +18,12 @@ public enum EventType: UInt8, Sendable, CaseIterable {
     case hostAck = 0x50
     case ping = 0x51
     case pong = 0x52
+    case heartbeat = 0x53
+}
+
+public enum HeartbeatButtonMask {
+    public static let leftButton: UInt8 = 0x01
+    public static let rightButton: UInt8 = 0x02
 }
 
 public enum Phase: UInt8, Sendable, CaseIterable {

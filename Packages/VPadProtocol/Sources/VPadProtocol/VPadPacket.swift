@@ -230,9 +230,57 @@ public struct VPadPacket: Equatable, Sendable {
             return true
         case .trackpadMove, .trackpadScroll, .stylusHover:
             return false
-        case .hostAck, .ping, .pong:
+        case .hostAck, .ping, .pong, .heartbeat:
             return false
         }
+    }
+
+    /// Creates a client-to-host heartbeat packet carrying full peripheral state (§3.2).
+    public static func heartbeat(
+        penDown: Bool,
+        inProximity: Bool,
+        buttonMask: UInt8 = 0,
+        modifiers: UInt16 = 0,
+        x: Float32 = 0,
+        y: Float32 = 0,
+        pressure: Float32 = 0,
+        tiltX: Float32 = 0,
+        tiltY: Float32 = 0,
+        rollAngle: Float32 = 0
+    ) -> VPadPacket {
+        var phaseBits: UInt8 = 0
+        if penDown { phaseBits |= 0x01 }
+        if inProximity { phaseBits |= 0x02 }
+        if (buttonMask & HeartbeatButtonMask.leftButton) != 0 { phaseBits |= 0x04 }
+        if (buttonMask & HeartbeatButtonMask.rightButton) != 0 { phaseBits |= 0x08 }
+
+        return VPadPacket(
+            type: EventType.heartbeat.rawValue,
+            phase: phaseBits,
+            modifiers: modifiers,
+            x: clamp01(x),
+            y: clamp01(y),
+            pressure: clamp01(pressure),
+            tiltX: clampBipolar(tiltX),
+            tiltY: clampBipolar(tiltY),
+            rollAngle: clampRoll(rollAngle)
+        )
+    }
+
+    public var isHeartbeat: Bool {
+        type == EventType.heartbeat.rawValue
+    }
+
+    public var heartbeatPenDown: Bool {
+        (phase & 0x01) != 0
+    }
+
+    public var heartbeatInProximity: Bool {
+        (phase & 0x02) != 0
+    }
+
+    public var heartbeatButtonMask: UInt8 {
+        (phase >> 2) & 0x03
     }
 
     /// Creates a host-to-client cumulative acknowledgement packet.

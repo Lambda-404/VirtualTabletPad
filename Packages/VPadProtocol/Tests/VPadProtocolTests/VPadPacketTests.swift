@@ -108,6 +108,39 @@ final class VPadPacketTests: XCTestCase {
         XCTAssertEqual(tap.phase, Phase.began.rawValue)
     }
 
+    func testHeartbeatPacketEncodingAndFields() {
+        let heartbeat = VPadPacket.heartbeat(
+            penDown: true,
+            inProximity: true,
+            buttonMask: HeartbeatButtonMask.leftButton | HeartbeatButtonMask.rightButton,
+            modifiers: ModifierMask.command.rawValue | ModifierMask.shift.rawValue,
+            x: 0.45,
+            y: 0.65,
+            pressure: 0.85
+        )
+        XCTAssertTrue(heartbeat.isHeartbeat)
+        XCTAssertFalse(heartbeat.isStateEvent)
+        XCTAssertTrue(heartbeat.heartbeatPenDown)
+        XCTAssertTrue(heartbeat.heartbeatInProximity)
+        XCTAssertEqual(heartbeat.heartbeatButtonMask, HeartbeatButtonMask.leftButton | HeartbeatButtonMask.rightButton)
+        XCTAssertEqual(heartbeat.modifiers, ModifierMask.command.rawValue | ModifierMask.shift.rawValue)
+        XCTAssertEqual(heartbeat.x, 0.45, accuracy: 0.001)
+        XCTAssertEqual(heartbeat.y, 0.65, accuracy: 0.001)
+        XCTAssertEqual(heartbeat.pressure, 0.85, accuracy: 0.001)
+
+        let data = heartbeat.toData()
+        XCTAssertEqual(data.count, 28)
+        let roundtrip = VPadPacket.fromData(data)
+        XCTAssertEqual(roundtrip, heartbeat)
+    }
+
+    func testHostAckSequencePacking() {
+        let seq: UInt64 = 0x1234_5678_9ABC_DEF0
+        let ack = VPadPacket.hostAck(cumulativeSeq: seq)
+        XCTAssertEqual(ack.type, EventType.hostAck.rawValue)
+        XCTAssertEqual(ack.ackSequenceNumber, seq)
+    }
+
     // MARK: - Helpers
 
     private func readFloat(_ data: Data, at offset: Int) -> Float32 {

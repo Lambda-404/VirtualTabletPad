@@ -116,9 +116,93 @@ final class EventInjector: @unchecked Sendable {
                 return
             }
             GestureMapper.shared.perform(action)
+        case .heartbeat:
+            reconcile(with: packet)
         case .hostAck, .ping, .pong:
             // Control plane packets are processed at the network layer and never injected as OS events.
             break
+        }
+    }
+
+    // MARK: - Testing inspections
+
+    var stylusDown: Bool { isStylusDown }
+    var stylusInProximity: Bool { isStylusInProximity }
+    var leftMouseDown: Bool { isLeftMouseDown }
+    var rightMouseDown: Bool { isRightMouseDown }
+    var spacebarHeld: Bool { isSpacebarHeld }
+
+    // MARK: - Heartbeat & State Reconciliation (§3.2)
+
+    func reconcile(with packet: VPadPacket) {
+        let flags = mapModifiers(packet.modifiers)
+        updateSpacebar(for: packet.modifiers)
+
+        // 1. Reconcile mouse / trackpad buttons
+        let wantLeft = (packet.heartbeatButtonMask & HeartbeatButtonMask.leftButton) != 0
+        let wantRight = (packet.heartbeatButtonMask & HeartbeatButtonMask.rightButton) != 0
+        let location = currentPointerLocation()
+
+        if isLeftMouseDown != wantLeft {
+            isLeftMouseDown = wantLeft
+            postMouse(wantLeft ? .leftMouseDown : .leftMouseUp, at: location, button: .left, flags: flags)
+        }
+
+        if isRightMouseDown != wantRight {
+            isRightMouseDown = wantRight
+            postMouse(wantRight ? .rightMouseDown : .rightMouseUp, at: location, button: .right, flags: flags)
+        }
+
+        // 2. Reconcile stylus proximity and tip contact
+        let wantProximity = packet.heartbeatInProximity
+        let wantPenDown = packet.heartbeatPenDown
+        let point = displayPoint(normalizedX: packet.x, normalizedY: packet.y) ?? location
+
+        if isStylusInProximity != wantProximity {
+            if !wantProximity {
+                if isStylusDown {
+                    isStylusDown = false
+                    postTabletMouse(.leftMouseUp, at: point, button: .left, packet: packet, flags: flags)
+                }
+                isStylusInProximity = false
+                postProximity(entering: false, flags: flags)
+            } else {
+                isStylusInProximity = true
+                postProximity(entering: true, flags: flags)
+            }
+        }
+
+        if isStylusDown != wantPenDown {
+            if wantPenDown {
+                if !isStylusInProximity {
+                    isStylusInProximity = true
+                    postProximity(entering: true, flags: flags)
+                }
+                isStylusDown = true
+                let effectivePressure = packet.pressure > 0.05 ? packet.pressure : 0.5
+                let strokePacket = VPadPacket.stylusStroke(
+                    x: packet.x,
+                    y: packet.y,
+                    pressure: effectivePressure,
+                    tiltX: packet.tiltX,
+                    tiltY: packet.tiltY,
+                    rollAngle: packet.rollAngle,
+                    phase: .began
+                )
+                postTabletMouse(.leftMouseDown, at: point, button: .left, packet: strokePacket, flags: flags)
+            } else {
+                isStylusDown = false
+                let strokePacket = VPadPacket.stylusStroke(
+                    x: packet.x,
+                    y: packet.y,
+                    pressure: 0.0,
+                    tiltX: packet.tiltX,
+                    tiltY: packet.tiltY,
+                    rollAngle: packet.rollAngle,
+                    phase: .ended
+                )
+                postTabletMouse(.leftMouseUp, at: point, button: .left, packet: strokePacket, flags: flags)
+            }
         }
     }
 

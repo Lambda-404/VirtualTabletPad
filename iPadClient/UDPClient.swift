@@ -23,6 +23,15 @@ final class UDPClient: @unchecked Sendable {
     private var pendingSends = 0
     private let resendEngine = StateResendEngine()
     private var resendTimer: DispatchSourceTimer?
+    private var heartbeatTimer: DispatchSourceTimer?
+
+    // Peripheral state tracking for reconciliation (§3.2)
+    private var isPenDown = false
+    private var isStylusInProximity = false
+    private var buttonMask: UInt8 = 0
+    private var lastX: Float32 = 0
+    private var lastY: Float32 = 0
+    private var lastPressure: Float32 = 0
 
     private init() {}
 
@@ -46,6 +55,7 @@ final class UDPClient: @unchecked Sendable {
         session = nil
         usbSender = nil
         pendingSends = 0
+        resetClientStateLocked()
         sessionLock.unlock()
 
         queue.async { [weak self] in
@@ -55,6 +65,7 @@ final class UDPClient: @unchecked Sendable {
             self.resendTimer?.cancel()
             self.resendTimer = nil
             self.resendEngine.reset()
+            self.stopHeartbeatTimer()
             self.browser?.cancel()
             self.browser = nil
             self.connection?.cancel()
@@ -65,7 +76,17 @@ final class UDPClient: @unchecked Sendable {
     func setSession(_ session: SessionCrypto?) {
         sessionLock.lock()
         self.session = session
+        let hasSession = session != nil
         sessionLock.unlock()
+
+        queue.async { [weak self] in
+            guard let self else { return }
+            if hasSession {
+                self.startHeartbeatTimer()
+            } else {
+                self.stopHeartbeatTimer()
+            }
+        }
     }
 
     /// When the session runs over the USB cable, input packets bypass UDP and
@@ -73,13 +94,24 @@ final class UDPClient: @unchecked Sendable {
     func setUSBSender(_ sender: (@Sendable (VPadPacket) -> Void)?) {
         sessionLock.lock()
         usbSender = sender
+        let hasSender = sender != nil
         sessionLock.unlock()
+
+        queue.async { [weak self] in
+            guard let self else { return }
+            if hasSender {
+                self.startHeartbeatTimer()
+            } else if self.session == nil {
+                self.stopHeartbeatTimer()
+            }
+        }
     }
 
     // MARK: - Sending
 
     func send(_ packet: VPadPacket) {
         sessionLock.lock()
+        updateClientStateLocked(for: packet)
         if let usbSender {
             sessionLock.unlock()
             usbSender(packet)
@@ -316,5 +348,94 @@ final class UDPClient: @unchecked Sendable {
             resendTimer?.cancel()
             resendTimer = nil
         }
+    }
+
+    // MARK: - Heartbeat & State Tracking (§3.2)
+
+    private func updateClientStateLocked(for packet: VPadPacket) {
+        guard let type = EventType(rawValue: packet.type) else { return }
+        switch type {
+        case .stylusStroke:
+            lastX = packet.x
+            lastY = packet.y
+            lastPressure = packet.pressure
+            isStylusInProximity = true
+            if packet.phase == Phase.began.rawValue || packet.phase == Phase.moved.rawValue {
+                isPenDown = true
+            } else if packet.phase == Phase.ended.rawValue || packet.phase == Phase.cancelled.rawValue {
+                isPenDown = false
+                lastPressure = 0
+            }
+        case .stylusHover:
+            lastX = packet.x
+            lastY = packet.y
+            isStylusInProximity = true
+            isPenDown = false
+        case .stylusProximity:
+            if packet.phase == Phase.began.rawValue {
+                isStylusInProximity = true
+            } else {
+                isStylusInProximity = false
+                isPenDown = false
+            }
+        case .trackpadClick:
+            let isRight = packet.pressure >= 1.5
+            let mask = isRight ? HeartbeatButtonMask.rightButton : HeartbeatButtonMask.leftButton
+            if packet.phase == Phase.began.rawValue {
+                buttonMask |= mask
+            } else {
+                buttonMask &= ~mask
+            }
+        default:
+            break
+        }
+    }
+
+    private func resetClientStateLocked() {
+        isPenDown = false
+        isStylusInProximity = false
+        buttonMask = 0
+        lastPressure = 0
+    }
+
+    private func startHeartbeatTimer() {
+        guard heartbeatTimer == nil else { return }
+        let timer = DispatchSource.makeTimerSource(queue: queue)
+        timer.schedule(deadline: .now() + .milliseconds(100), repeating: .milliseconds(100), leeway: .milliseconds(10))
+        timer.setEventHandler { [weak self] in
+            self?.sendHeartbeat()
+        }
+        timer.resume()
+        heartbeatTimer = timer
+    }
+
+    private func stopHeartbeatTimer() {
+        heartbeatTimer?.cancel()
+        heartbeatTimer = nil
+    }
+
+    private func sendHeartbeat() {
+        sessionLock.lock()
+        let sender = usbSender
+        let currentSession = session
+        let packet = VPadPacket.heartbeat(
+            penDown: isPenDown,
+            inProximity: isStylusInProximity,
+            buttonMask: buttonMask,
+            modifiers: ModifierState.shared.snapshot(),
+            x: lastX,
+            y: lastY,
+            pressure: lastPressure
+        )
+        sessionLock.unlock()
+
+        if let sender {
+            sender(packet)
+            return
+        }
+
+        guard let currentSession, let connection else { return }
+        guard let (envelope, _) = currentSession.sealUDPWithSeq(packet) else { return }
+        connection.send(content: envelope, completion: .idempotent)
     }
 }

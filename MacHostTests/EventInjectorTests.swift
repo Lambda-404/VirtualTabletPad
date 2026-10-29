@@ -280,4 +280,81 @@ final class EventInjectorTests: XCTestCase {
         XCTAssertEqual(poster.events[3].type, .tabletProximity)
         XCTAssertEqual(poster.events[3].rawEvent.getIntegerValueField(.tabletProximityEventEnterProximity), 0)
     }
+
+    // MARK: - Heartbeat & Reconciliation Tests (§3.2)
+
+    func testHeartbeatReconcilesMissedPenUp() {
+        let began = VPadPacket.stylusStroke(x: 0.3, y: 0.4, pressure: 0.6, tiltX: 0, tiltY: 0, rollAngle: 0, phase: .began)
+        injector.inject(began)
+        XCTAssertTrue(injector.stylusDown)
+        let countBefore = poster.count
+
+        // Heartbeat arrives stating pen is UP (client lifted pen, packet was lost)
+        let heartbeat = VPadPacket.heartbeat(penDown: false, inProximity: true, buttonMask: 0, modifiers: 0, x: 0.3, y: 0.4)
+        injector.inject(heartbeat)
+
+        XCTAssertFalse(injector.stylusDown)
+        XCTAssertEqual(poster.count, countBefore + 1)
+        XCTAssertEqual(poster.events.last?.type, .leftMouseUp)
+    }
+
+    func testHeartbeatReconcilesMissedPenDown() {
+        XCTAssertFalse(injector.stylusDown)
+
+        // Heartbeat arrives stating pen is DOWN mid-stroke
+        let heartbeat = VPadPacket.heartbeat(penDown: true, inProximity: true, buttonMask: 0, modifiers: 0, x: 0.5, y: 0.5, pressure: 0.7)
+        injector.inject(heartbeat)
+
+        XCTAssertTrue(injector.stylusDown)
+        XCTAssertTrue(injector.stylusInProximity)
+        XCTAssertEqual(poster.events.last?.type, .leftMouseDown)
+    }
+
+    func testHeartbeatReconcilesMissedProximityExit() {
+        let enter = VPadPacket.stylusProximity(phase: .began)
+        injector.inject(enter)
+        XCTAssertTrue(injector.stylusInProximity)
+
+        // Heartbeat arrives stating stylus is out of proximity
+        let heartbeat = VPadPacket.heartbeat(penDown: false, inProximity: false, buttonMask: 0, modifiers: 0)
+        injector.inject(heartbeat)
+
+        XCTAssertFalse(injector.stylusInProximity)
+        XCTAssertEqual(poster.events.last?.type, .tabletProximity)
+        XCTAssertEqual(poster.events.last?.rawEvent.getIntegerValueField(.tabletProximityEventEnterProximity), 0)
+    }
+
+    func testHeartbeatReconcilesMissedMouseClickRelease() {
+        let clickDown = VPadPacket.trackpadClick(button: .left, phase: .began)
+        injector.inject(clickDown)
+        XCTAssertTrue(injector.leftMouseDown)
+
+        // Heartbeat arrives stating no buttons are down
+        let heartbeat = VPadPacket.heartbeat(penDown: false, inProximity: false, buttonMask: 0, modifiers: 0)
+        injector.inject(heartbeat)
+
+        XCTAssertFalse(injector.leftMouseDown)
+        XCTAssertEqual(poster.events.last?.type, .leftMouseUp)
+    }
+
+    func testHeartbeatReconcilesMissedSpacebarRelease() {
+        let spaceDown = VPadPacket.trackpadMove(dx: 1, dy: 1, modifiers: ModifierMask.space.rawValue)
+        injector.inject(spaceDown)
+        XCTAssertTrue(injector.spacebarHeld)
+
+        // Heartbeat arrives without Spacebar modifier
+        let heartbeat = VPadPacket.heartbeat(penDown: false, inProximity: false, buttonMask: 0, modifiers: 0)
+        injector.inject(heartbeat)
+
+        XCTAssertFalse(injector.spacebarHeld)
+        XCTAssertEqual(poster.events.last?.type, .keyUp)
+    }
+
+    func testHeartbeatNoOpWhenInSync() {
+        poster.clear()
+        let heartbeat = VPadPacket.heartbeat(penDown: false, inProximity: false, buttonMask: 0, modifiers: 0)
+        injector.inject(heartbeat)
+
+        XCTAssertEqual(poster.count, 0)
+    }
 }

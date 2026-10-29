@@ -214,3 +214,4 @@ Each feature gets its own branch and settings UI, with settings stored in a `Cod
 | 2.4  | done   | agent/2.4-compat-matrix | Compatibility matrix table in docs/compatibility.md |
 | 2.5  | done   | agent/2.5-driverkit-feasibility | DriverKit virtual HID feasibility analysis in docs/driverkit_feasibility.md |
 | 3.1  | done   | agent/3.1-reliable-state-changes | Selective retry for state events (down/up, modifier, shortcuts), cumulative ACK, tests |
+| 3.2  | done   | agent/3.2-heartbeat-reconciliation | 100ms periodic state heartbeat (pen, buttons, modifiers), host state reconciliation, tests |
