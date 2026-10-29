@@ -44,6 +44,9 @@ final class SessionCoordinator: ObservableObject {
     @Published private(set) var uploadProgress: Double?
     @Published private(set) var lastFileStatus: FileStatus?
     @Published private(set) var lastError: String?
+    @Published private(set) var activeAppBundleID: String?
+    @Published private(set) var activeProfile: Profile = .default
+    @Published var profileStore: ProfileStore = ProfileStore()
 
     private let defaults = UserDefaults.standard
     private var isStarted = false
@@ -269,6 +272,8 @@ final class SessionCoordinator: ObservableObject {
             if status != .success {
                 lastError = "File transfer: \(status.displayName)"
             }
+        case .activeApplication(let bundleID):
+            onActiveApplicationChanged(bundleID)
         case .error(let message):
             lastError = message
         }
@@ -295,6 +300,16 @@ final class SessionCoordinator: ObservableObject {
         upload(url)
     }
     #endif
+
+    func onActiveApplicationChanged(_ bundleID: String) {
+        self.activeAppBundleID = bundleID
+        let matched = profileStore.profile(for: bundleID)
+        self.activeProfile = matched
+
+        var pencilSettings = PencilSettingsStore.shared.settings
+        pencilSettings.pressureCurveConfig = matched.pressureCurve
+        PencilSettingsStore.shared.update(pencilSettings)
+    }
 }
 
 extension FileStatus {

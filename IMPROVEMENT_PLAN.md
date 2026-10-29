@@ -220,3 +220,4 @@ Each feature gets its own branch and settings UI, with settings stored in a `Cod
 | 3.5  | done   | agent/3.5-latency-benchmark | Ping/pong wire packets, Tools/latency-bench (p50/p95/p99/jitter), docs/latency.md, tests |
 | 4.1  | done   | agent/4.1-area-mapping | MappingRegion, AreaMappingConfiguration (multi-display, rotation, 4:3 lock, left-handed), UI & tests |
 | 4.2  | done   | agent/4.2-pressure-curve-editor | Cubic Bézier PressureCurveConfiguration, 256-entry O(1) LUT, PressureCurveEditorView, tests |
+| 4.3  | done   | agent/4.3-per-app-profiles | Profile, ProfileStore, activeApplication control frame, frontmost app sync, UI & tests |

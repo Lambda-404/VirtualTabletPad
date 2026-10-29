@@ -103,6 +103,8 @@ public enum FrameType: UInt8, Sendable, CaseIterable {
     case error = 0x07
     /// USB transport: one raw 28-byte VPadPacket, encrypted by the TCP session.
     case inputPacket = 0x08
+    /// Per-app profile sync (§4.3): active macOS frontmost application bundle ID.
+    case activeApplication = 0x09
     case fileHeader = 0x30
     case fileChunk = 0x31
     case fileTrailer = 0x32

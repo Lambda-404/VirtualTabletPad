@@ -21,6 +21,7 @@ final class TCPFileClient: @unchecked Sendable {
         case stats(dropped: UInt64, lastNonce: UInt64)
         case fileProgress(name: String, progress: Double)
         case fileStatus(name: String, status: FileStatus)
+        case activeApplication(bundleID: String)
         case error(String)
     }
 
@@ -519,6 +520,8 @@ final class TCPFileClient: @unchecked Sendable {
             handleStats(frame.body)
         case .fileStatus:
             handleFileStatus(frame.body)
+        case .activeApplication:
+            handleActiveApplication(frame.body)
         case .error:
             emit(.error("Mac reported an error"))
         default:
@@ -575,6 +578,12 @@ final class TCPFileClient: @unchecked Sendable {
             return (dropped, last)
         }
         emit(.stats(dropped: dropped, lastNonce: lastNonce))
+    }
+
+    private func handleActiveApplication(_ body: Data) {
+        guard let bundleID = String(data: body, encoding: .utf8), !bundleID.isEmpty else { return }
+        log.info("Mac frontmost app changed: \(bundleID, privacy: .public)")
+        emit(.activeApplication(bundleID: bundleID))
     }
 
     // MARK: - Sending

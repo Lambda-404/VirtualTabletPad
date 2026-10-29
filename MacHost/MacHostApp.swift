@@ -169,6 +169,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         NSApp.setActivationPolicy(.accessory)
         AccessibilityManager.shared.start()
+        ActiveAppObserver.shared.start()
         UDPServer.shared.start()
         TCPServer.shared.start()
         HostBeacon.shared.start()
@@ -180,10 +181,37 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        ActiveAppObserver.shared.stop()
         HostBeacon.shared.stop()
         USBProxy.shared.stop()
         TCPServer.shared.stop()
         UDPServer.shared.stop()
+    }
+}
+
+@MainActor
+final class ActiveAppObserver {
+    static let shared = ActiveAppObserver()
+    private var observer: NSObjectProtocol?
+
+    func start() {
+        guard observer == nil else { return }
+        observer = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didActivateApplicationNotification,
+            object: nil,
+            queue: .main
+        ) { notification in
+            guard let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
+                  let bundleID = app.bundleIdentifier else { return }
+            TCPServer.shared.broadcastActiveApplication(bundleID)
+        }
+    }
+
+    func stop() {
+        if let observer {
+            NSWorkspace.shared.notificationCenter.removeObserver(observer)
+            self.observer = nil
+        }
     }
 }
 

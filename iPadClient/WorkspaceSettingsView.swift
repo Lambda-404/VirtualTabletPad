@@ -4,6 +4,7 @@ import VPadProtocol
 enum SettingsSection: String, CaseIterable, Identifiable {
     case touchpad
     case pencil
+    case profiles
     case functionKeys
     case connection
     case about
@@ -14,6 +15,7 @@ enum SettingsSection: String, CaseIterable, Identifiable {
         switch self {
         case .touchpad: return "Touchpad"
         case .pencil: return "Pencil"
+        case .profiles: return "Profiles"
         case .functionKeys: return "Function Keys"
         case .connection: return "Connection"
         case .about: return "About"
@@ -24,6 +26,7 @@ enum SettingsSection: String, CaseIterable, Identifiable {
         switch self {
         case .touchpad: return "hand.point.up.left"
         case .pencil: return "pencil.tip"
+        case .profiles: return "slider.horizontal.2.square"
         case .functionKeys: return "function"
         case .connection: return "network"
         case .about: return "info.circle"
@@ -126,6 +129,8 @@ struct WorkspaceSettingsView: View {
             TouchpadSettingsView(embedded: true)
         case .pencil:
             pencilSettings
+        case .profiles:
+            profilesSettings
         case .functionKeys:
             functionSettings
         case .connection:
@@ -516,6 +521,58 @@ struct WorkspaceSettingsView: View {
         let version = info?["CFBundleShortVersionString"] as? String ?? "?"
         let build = info?["CFBundleVersion"] as? String ?? "?"
         return "Version \(version) · Build \(build)"
+    }
+
+    private var profilesSettings: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                HStack(spacing: 12) {
+                    Circle()
+                        .fill(Color.green)
+                        .frame(width: 8, height: 8)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(coordinator.activeProfile.name)
+                            .font(.system(size: 16, weight: .semibold, design: .rounded))
+                        if let bundleID = coordinator.activeAppBundleID {
+                            Text(bundleID)
+                                .font(.system(size: 11, design: .monospaced))
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    Spacer()
+                }
+                .padding(14)
+                .background(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(Color.white.opacity(0.06))
+                )
+
+                Text("Application Profiles").font(.system(size: 18, weight: .semibold, design: .rounded))
+
+                ForEach(coordinator.profileStore.profiles) { profile in
+                    HStack {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(profile.name)
+                                .font(.system(size: 14, weight: .medium, design: .rounded))
+                            Text(profile.bundleIdentifier)
+                                .font(.system(size: 11, design: .monospaced))
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Text(profile.pressureCurve.preset.title)
+                            .font(.system(size: 12, design: .rounded))
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Capsule().fill(Color.white.opacity(0.08)))
+                    }
+                    .padding(.vertical, 6)
+                    Divider().overlay(Color.white.opacity(0.06))
+                }
+            }
+            .padding(24)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
     }
 
     private var aboutSettings: some View {

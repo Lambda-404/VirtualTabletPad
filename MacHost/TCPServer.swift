@@ -24,7 +24,7 @@ private final class TCPControlConnection: @unchecked Sendable {
     private var session: SessionCrypto?
     private var decoder = VPadFrameDecoder()
     private var fileReceiver: FileReceiver
-    private var state: TCPConnectionState = .awaitingHello
+    fileprivate var state: TCPConnectionState = .awaitingHello
     private var handshakeWorkItem: DispatchWorkItem?
     private var lastSendError: String?
     private var inputPacketCount = 0
@@ -234,6 +234,9 @@ private final class TCPControlConnection: @unchecked Sendable {
 
             Task { @MainActor in
                 HostStatus.shared.markConnected(peer: peer)
+                if let frontApp = NSWorkspace.shared.frontmostApplication?.bundleIdentifier {
+                    TCPServer.shared.broadcastActiveApplication(frontApp)
+                }
             }
             log.info("v2 session ready with \(peer, privacy: .public) (sessionID: \(sessionID))")
         } catch {
@@ -275,6 +278,9 @@ private final class TCPControlConnection: @unchecked Sendable {
 
             Task { @MainActor in
                 HostStatus.shared.markConnected(peer: peer)
+                if let frontApp = NSWorkspace.shared.frontmostApplication?.bundleIdentifier {
+                    TCPServer.shared.broadcastActiveApplication(frontApp)
+                }
             }
             log.info("v1 debug session ready with \(peer, privacy: .public)")
         } catch {
@@ -301,9 +307,7 @@ private final class TCPControlConnection: @unchecked Sendable {
             }
             sendEncrypted(.pong, body: frame.body)
             sendStats()
-        case .pong:
-            break
-        case .stats:
+        case .pong, .stats, .activeApplication:
             break
         case .inputPacket:
             guard let packet = VPadPacket.fromData(frame.body) else {
@@ -347,6 +351,11 @@ private final class TCPControlConnection: @unchecked Sendable {
 
     private func sendPlaintext(_ type: FrameType, body: Data = Data()) {
         send(VPadFrameCodec.encode(type: type, body: body))
+    }
+
+    func sendActiveApplication(_ bundleID: String) {
+        guard state == .ready else { return }
+        sendEncrypted(.activeApplication, body: Data(bundleID.utf8))
     }
 
     private func sendEncrypted(_ type: FrameType, body: Data = Data()) {
@@ -464,6 +473,13 @@ final class TCPServer: @unchecked Sendable {
     fileprivate func clearActive(_ connection: TCPControlConnection) {
         if activeConnection === connection {
             activeConnection = nil
+        }
+    }
+
+    func broadcastActiveApplication(_ bundleID: String) {
+        queue.async { [weak self] in
+            guard let self, let active = self.activeConnection, active.state == .ready else { return }
+            active.sendActiveApplication(bundleID)
         }
     }
 

@@ -58,7 +58,7 @@ final class ParserRobustnessTests: XCTestCase {
         }
 
         // Unknown frame type IDs
-        let unknownTypes: [UInt8] = [0x00, 0x09, 0x15, 0x2F, 0x35, 0xFE, 0xFF]
+        let unknownTypes: [UInt8] = [0x00, 0x0A, 0x15, 0x2F, 0x35, 0xFE, 0xFF]
         for type in unknownTypes {
             let payload = Data([type, 1, 2, 3])
             XCTAssertThrowsError(try VPadFrameCodec.parse(payload: payload)) { error in
