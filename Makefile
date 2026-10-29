@@ -15,7 +15,7 @@ IPAD_PRODUCT := $(IPAD_DERIVED)/Build/Products/$(IPAD_CONFIG)-iphonesimulator/$(
 IPAD_DEVICE_DERIVED ?= /tmp/VirtualTabletPadiPadDevice
 IPAD_SIM ?=
 
-.PHONY: help generate test build run run-dev probe ipad-build ipad-device-build ipad-install ipad-smoke clean
+.PHONY: help generate test build run run-dev probe inspector ipad-build ipad-device-build ipad-install ipad-smoke clean
 
 help:
 	@printf '%s\n' \
@@ -25,6 +25,7 @@ help:
 	  'make run              - launch the staged Mac app (default ~/Downloads uploads)' \
 	  'make run-dev          - launch the Mac app with uploads in build/vpad_uploads' \
 	  'make probe            - run the dev probe against a running Mac host' \
+	  'make inspector        - build and run the Tablet Event Inspector tool' \
 	  'make ipad-build       - build VirtualTabletPad for the iOS Simulator' \
 	  'make ipad-device-build - compile-check VirtualTabletPad for a generic iOS device' \
 	  'make ipad-install     - install/launch on IPAD_SIM=<simulator UDID>' \
@@ -64,6 +65,11 @@ run-dev: build
 probe:
 	python3 Tools/vpad_probe.py --host 127.0.0.1 \
 	  --uploads "$(UPLOADS)" --size-mb $(SIZE_MB)
+
+inspector:
+	mkdir -p build
+	swiftc -O -framework AppKit -framework SwiftUI Tools/TabletEventInspector/main.swift -o build/TabletEventInspector
+	./build/TabletEventInspector
 
 ipad-build: generate
 	xcodebuild -project $(PROJECT) -scheme iPadClient -configuration $(IPAD_CONFIG) \
