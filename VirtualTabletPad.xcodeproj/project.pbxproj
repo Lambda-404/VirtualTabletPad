@@ -10,7 +10,9 @@
 		0699D6326CDE2946B100D0DC /* GestureEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = F724A3A974832BDC7E1217F9 /* GestureEngine.swift */; };
 		0FAC50F6B73667E260251E5F /* USBProxy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EC5F32F10FBECB7931B4F37 /* USBProxy.swift */; };
 		12AF59E6866C224EF1DF38F1 /* ModifierState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29ED733A107B2C21065B4E91 /* ModifierState.swift */; };
+		1B2C9BA5075D5DC9C6FE8016 /* EventInjectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C3ABED8A25AE93F6B551AA5 /* EventInjectorTests.swift */; };
 		1E08B46E6DE12E2B71125524 /* UDPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45B1FFBA13CF40C460D403C7 /* UDPServer.swift */; };
+		29ED7F912364646E8C4CF42E /* VPadProtocol in Frameworks */ = {isa = PBXBuildFile; productRef = 50BF8F48CC8700F136C84986 /* VPadProtocol */; };
 		339E6F79B560C01ACCF9A92B /* EventInjector.swift in Sources */ = {isa = PBXBuildFile; fileRef = F44A2EFE78297924A1B14B40 /* EventInjector.swift */; };
 		36706010021AF27E43AF4A81 /* VPadProtocol in Frameworks */ = {isa = PBXBuildFile; productRef = F013512D136096C8C3CD7519 /* VPadProtocol */; };
 		3ABE6E325E8A54E4C7E36F4C /* PairingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 344B61CAC1A2EBBCE0ED73C6 /* PairingView.swift */; };
@@ -44,10 +46,21 @@
 		E185F4C32097C22BC4877F87 /* PencilSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93ACFF63669CCA80E47C2042 /* PencilSettings.swift */; };
 		E4B63C335B2836755F72A533 /* QRScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 191077CB210DE4AC3BF840F0 /* QRScannerView.swift */; };
 		E8F873882B47FAC8C2E854C4 /* HostBeacon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D96DF6408B9397B911AF673 /* HostBeacon.swift */; };
+		FC3968A65DD2C57BB905FEF2 /* EventPosting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F501491CC39ABCDCF63DABE /* EventPosting.swift */; };
 		FC8A528C4946FA11030B53E7 /* TCPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFD07A15CB3A70CD892818F2 /* TCPServer.swift */; };
 		FEC7B194A69B999A7F6AC30B /* TCPFileClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6EFD5E08467B0880BFD5579 /* TCPFileClient.swift */; };
 		FF2DA4FAEEBA9BD7CE745B77 /* PencilProManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B7C750622D79E069FDB3E4D /* PencilProManager.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		CE8DEF300316366BF7B61EB2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F4193E0BE358C469BDA19E0B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7124FB2925206039321D0D41;
+			remoteInfo = MacHost;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		050D3541CB77806EB1BE5730 /* LinkDiscovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkDiscovery.swift; sourceTree = "<group>"; };
@@ -65,6 +78,8 @@
 		3F84D30D422716FCD073314A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		45B1FFBA13CF40C460D403C7 /* UDPServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UDPServer.swift; sourceTree = "<group>"; };
 		49041ABADA68D792F2C30ACF /* SessionState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionState.swift; sourceTree = "<group>"; };
+		4C3ABED8A25AE93F6B551AA5 /* EventInjectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventInjectorTests.swift; sourceTree = "<group>"; };
+		5F501491CC39ABCDCF63DABE /* EventPosting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventPosting.swift; sourceTree = "<group>"; };
 		6B7C750622D79E069FDB3E4D /* PencilProManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PencilProManager.swift; sourceTree = "<group>"; };
 		6F4F43A7CA219C4E67BE5F4D /* WorkspaceSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkspaceSettingsView.swift; sourceTree = "<group>"; };
 		79E79667FDB4874B70727DA8 /* GestureMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureMapView.swift; sourceTree = "<group>"; };
@@ -84,6 +99,7 @@
 		B513FB13ED23BA741ED26333 /* PencilStatusMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PencilStatusMonitor.swift; sourceTree = "<group>"; };
 		B635C96C68DE1FBB64E212C7 /* UDPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UDPClient.swift; sourceTree = "<group>"; };
 		BB1BEA6FA3BD2EE9D61CC75D /* HostIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostIdentity.swift; sourceTree = "<group>"; };
+		C5D7D387E0D6D8AA058B48F4 /* MacHostTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MacHostTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE7844CA9290A3D04600C96D /* MacHostApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacHostApp.swift; sourceTree = "<group>"; };
 		EA21D4A82CF1437D4C1E5ADA /* TouchpadSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TouchpadSettings.swift; sourceTree = "<group>"; };
 		F30A3FE22F973326DB919A9E /* PairingProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingProfile.swift; sourceTree = "<group>"; };
@@ -99,6 +115,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				36706010021AF27E43AF4A81 /* VPadProtocol in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EEBACE172D31C292E47D8678 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				29ED7F912364646E8C4CF42E /* VPadProtocol in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -151,6 +175,7 @@
 				8A31AEE91F8C74300A6E7A0E /* AccessibilityManager.swift */,
 				3F84D30D422716FCD073314A /* Assets.xcassets */,
 				F44A2EFE78297924A1B14B40 /* EventInjector.swift */,
+				5F501491CC39ABCDCF63DABE /* EventPosting.swift */,
 				F901100F85DA31ED6D05A4A6 /* GestureMapper.swift */,
 				79E79667FDB4874B70727DA8 /* GestureMapView.swift */,
 				2D96DF6408B9397B911AF673 /* HostBeacon.swift */,
@@ -170,6 +195,7 @@
 			children = (
 				842759E6C93D64EB083495E7 /* iPadClient.app */,
 				3514EF553C7E9EA73B001649 /* MacHost.app */,
+				C5D7D387E0D6D8AA058B48F4 /* MacHostTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -182,11 +208,20 @@
 			path = Packages;
 			sourceTree = "<group>";
 		};
+		8163EA41E3AA8C943473CBC8 /* MacHostTests */ = {
+			isa = PBXGroup;
+			children = (
+				4C3ABED8A25AE93F6B551AA5 /* EventInjectorTests.swift */,
+			);
+			path = MacHostTests;
+			sourceTree = "<group>";
+		};
 		CA9EE110EEFADBC3F7616900 = {
 			isa = PBXGroup;
 			children = (
 				1FBA60D07C1AC5ECDFC2325E /* iPadClient */,
 				3D26FDA83FA29E401EBEAF4E /* MacHost */,
+				8163EA41E3AA8C943473CBC8 /* MacHostTests */,
 				803AC331C039999BFEA9DD81 /* Packages */,
 				446BF63E669BC2D902E486FF /* Products */,
 			);
@@ -235,6 +270,26 @@
 			productReference = 842759E6C93D64EB083495E7 /* iPadClient.app */;
 			productType = "com.apple.product-type.application";
 		};
+		C3C0BFA3715F684470052823 /* MacHostTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7838B77977DBB3ABE2ECD181 /* Build configuration list for PBXNativeTarget "MacHostTests" */;
+			buildPhases = (
+				3E8F915F54A6F529511D8D69 /* Sources */,
+				EEBACE172D31C292E47D8678 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				763A9B756D85AE659BDCAF59 /* PBXTargetDependency */,
+			);
+			name = MacHostTests;
+			packageProductDependencies = (
+				50BF8F48CC8700F136C84986 /* VPadProtocol */,
+			);
+			productName = MacHostTests;
+			productReference = C5D7D387E0D6D8AA058B48F4 /* MacHostTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -250,6 +305,9 @@
 					};
 					912FADF7F632A1E586A00759 = {
 						ProvisioningStyle = Automatic;
+					};
+					C3C0BFA3715F684470052823 = {
+						ProvisioningStyle = Manual;
 					};
 				};
 			};
@@ -271,6 +329,7 @@
 			projectRoot = "";
 			targets = (
 				7124FB2925206039321D0D41 /* MacHost */,
+				C3C0BFA3715F684470052823 /* MacHostTests */,
 				912FADF7F632A1E586A00759 /* iPadClient */,
 			);
 		};
@@ -333,6 +392,7 @@
 			files = (
 				D1C90935AD234F994599EABE /* AccessibilityManager.swift in Sources */,
 				339E6F79B560C01ACCF9A92B /* EventInjector.swift in Sources */,
+				FC3968A65DD2C57BB905FEF2 /* EventPosting.swift in Sources */,
 				5FC51E08AD1FE60F606E13C0 /* GestureMapView.swift in Sources */,
 				7165F1EAE7390130F5F08176 /* GestureMapper.swift in Sources */,
 				E8F873882B47FAC8C2E854C4 /* HostBeacon.swift in Sources */,
@@ -346,9 +406,48 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		3E8F915F54A6F529511D8D69 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1B2C9BA5075D5DC9C6FE8016 /* EventInjectorTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		763A9B756D85AE659BDCAF59 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7124FB2925206039321D0D41 /* MacHost */;
+			targetProxy = CE8DEF300316366BF7B61EB2 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		07791A88979C6117DA4965DD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.vpad.MacHostTests;
+				PRODUCT_NAME = MacHostTests;
+				SDKROOT = macosx;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/VirtualTabletPad.app/Contents/MacOS/VirtualTabletPad";
+			};
+			name = Release;
+		};
 		2229773C7683B5F807EB1387 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -421,6 +520,29 @@
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = 2;
+			};
+			name = Debug;
+		};
+		5C0E39957FCFAA368CB55CE3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.vpad.MacHostTests;
+				PRODUCT_NAME = MacHostTests;
+				SDKROOT = macosx;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/VirtualTabletPad.app/Contents/MacOS/VirtualTabletPad";
 			};
 			name = Debug;
 		};
@@ -593,6 +715,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
+		7838B77977DBB3ABE2ECD181 /* Build configuration list for PBXNativeTarget "MacHostTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5C0E39957FCFAA368CB55CE3 /* Debug */,
+				07791A88979C6117DA4965DD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		FB97CD5C3F4757C69F7866D5 /* Build configuration list for PBXNativeTarget "MacHost" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -612,6 +743,10 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		50BF8F48CC8700F136C84986 /* VPadProtocol */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = VPadProtocol;
+		};
 		9327A9C0077802CA7AE00ACB /* VPadProtocol */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = VPadProtocol;

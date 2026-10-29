@@ -34,8 +34,9 @@ help:
 generate:
 	$(XCODEGEN) generate --spec project.yml
 
-test:
+test: generate
 	cd Packages/VPadProtocol && swift test --disable-sandbox --scratch-path /tmp/VPadProtocolBuild
+	xcodebuild -project $(PROJECT) -scheme $(SCHEME) -destination 'platform=macOS' test
 
 build: generate
 	xcodebuild -project $(PROJECT) -scheme $(SCHEME) -configuration $(CONFIG) \

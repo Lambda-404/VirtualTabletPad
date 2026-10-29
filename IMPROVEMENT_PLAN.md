@@ -208,3 +208,4 @@ Each feature gets its own branch and settings UI, with settings stored in a `Cod
 | 1.6  | done   | agent/1.6-wire-in | Wired V2 session crypto, allowlist, single-use tokens, UI paired list |
 | 1.7  | done   | agent/1.7-file-hardening | FileReceiver hardened, path traversal blocked, user confirmation dialog |
 | 1.8  | done   | agent/1.8-parser-robustness | Parser robustness tests & 2000-iteration seeded PRNG fuzz loop |
+| 2.1  | done   | agent/2.1-testable-injection | EventPosting protocol, MockEventPoster, deterministic EventInjector, MacHostTests |

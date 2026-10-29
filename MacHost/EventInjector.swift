@@ -14,8 +14,12 @@ final class EventInjector: @unchecked Sendable {
 
     private let log = Logger(subsystem: "com.vpad.MacHost", category: "inject")
     private let eventSource: CGEventSource?
+    private let poster: any EventPosting
+    private let screenBoundsProvider: @Sendable () -> CGRect
+    private let pointerLocationProvider: @Sendable () -> CGPoint
+    private let warpCursorHandler: @Sendable (CGPoint) -> Void
     private let macroQueue = DispatchQueue(label: "com.vpad.macro", qos: .utility)
-    private let isDryRun: Bool = ProcessInfo.processInfo.environment["VPAD_DRY_RUN_INJECT"] == "1"
+    private let isDryRun: Bool
 
     private var isSpacebarHeld = false
     private var isLeftMouseDown = false
@@ -24,8 +28,30 @@ final class EventInjector: @unchecked Sendable {
     private var keyboardDown: [CGKeyCode: CGEventFlags] = [:]
     private var didWakeDisplay = false
 
-    private init() {
-        eventSource = CGEventSource(stateID: .hidSystemState)
+    init(
+        poster: any EventPosting = DefaultEventPoster(),
+        eventSource: CGEventSource? = CGEventSource(stateID: .hidSystemState),
+        screenBoundsProvider: (@Sendable () -> CGRect)? = nil,
+        pointerLocationProvider: (@Sendable () -> CGPoint)? = nil,
+        warpCursorHandler: (@Sendable (CGPoint) -> Void)? = nil,
+        isDryRun: Bool = ProcessInfo.processInfo.environment["VPAD_DRY_RUN_INJECT"] == "1"
+    ) {
+        self.poster = poster
+        self.eventSource = eventSource
+        self.screenBoundsProvider = screenBoundsProvider ?? {
+            let bounds = CGDisplayBounds(CGMainDisplayID())
+            guard bounds.width > 0, bounds.height > 0 else {
+                return CGRect(x: 0, y: 0, width: 1920, height: 1080)
+            }
+            return bounds
+        }
+        self.pointerLocationProvider = pointerLocationProvider ?? {
+            CGEvent(source: nil)?.location ?? .zero
+        }
+        self.warpCursorHandler = warpCursorHandler ?? { point in
+            CGWarpMouseCursorPosition(point)
+        }
+        self.isDryRun = isDryRun
     }
 
     private func logDryRun(_ message: String) {
@@ -228,7 +254,9 @@ final class EventInjector: @unchecked Sendable {
             data1: data1,
             data2: -1
         ) else { return }
-        event.cgEvent?.post(tap: .cghidEventTap)
+        if let cgEvent = event.cgEvent {
+            poster.post(cgEvent, tap: .cghidEventTap)
+        }
     }
 
     private func performDockExposeAction(
@@ -282,7 +310,7 @@ final class EventInjector: @unchecked Sendable {
             return
         }
         event.flags = flags
-        event.post(tap: .cgSessionEventTap)
+        poster.post(event, tap: .cgSessionEventTap)
     }
 
     // MARK: - Trackpad
@@ -319,7 +347,7 @@ final class EventInjector: @unchecked Sendable {
             return
         }
         event.flags = flags
-        event.post(tap: .cghidEventTap)
+        poster.post(event, tap: .cghidEventTap)
     }
 
     private func injectTrackpadClick(_ packet: VPadPacket, flags: CGEventFlags) {
@@ -366,7 +394,7 @@ final class EventInjector: @unchecked Sendable {
         event.setIntegerValueField(.tabletProximityEventPointerType, value: 1)   // pen tip
         event.setIntegerValueField(.tabletProximityEventVendorID, value: 0x056A) // Wacom emulation
         event.setIntegerValueField(.tabletProximityEventCapabilityMask, value: 0x0FFF)
-        event.post(tap: .cghidEventTap)
+        poster.post(event, tap: .cghidEventTap)
     }
 
     private func injectStylus(_ packet: VPadPacket, isHover: Bool, flags: CGEventFlags) {
@@ -407,7 +435,7 @@ final class EventInjector: @unchecked Sendable {
             if isDryRun {
                 logDryRun("WARP_CURSOR x=\(String(format: "%.2f", point.x)) y=\(String(format: "%.2f", point.y))")
             } else {
-                CGWarpMouseCursorPosition(point)
+                warpCursorHandler(point)
             }
         } else {
             point = currentPointerLocation()
@@ -450,7 +478,7 @@ final class EventInjector: @unchecked Sendable {
         event.setDoubleValueField(.tabletEventTiltX, value: safeBipolar(packet.tiltX))
         event.setDoubleValueField(.tabletEventTiltY, value: safeBipolar(packet.tiltY))
         event.setDoubleValueField(.tabletEventRotation, value: degrees)
-        event.post(tap: .cghidEventTap)
+        poster.post(event, tap: .cghidEventTap)
     }
 
     // MARK: - Keyboard
@@ -514,7 +542,7 @@ final class EventInjector: @unchecked Sendable {
         if autorepeat, down {
             event.setIntegerValueField(.keyboardEventAutorepeat, value: 1)
         }
-        event.post(tap: .cghidEventTap)
+        poster.post(event, tap: .cghidEventTap)
     }
 
     private func postAtomicKey(_ keyCode: CGKeyCode, flags: CGEventFlags) {
@@ -530,15 +558,11 @@ final class EventInjector: @unchecked Sendable {
         if isDryRun {
             return CGPoint(x: 500, y: 500)
         }
-        return CGEvent(source: nil)?.location ?? .zero
+        return pointerLocationProvider()
     }
 
     private func mainDisplayBounds() -> CGRect {
-        let bounds = CGDisplayBounds(CGMainDisplayID())
-        guard bounds.width > 0, bounds.height > 0 else {
-            return CGRect(x: 0, y: 0, width: 1920, height: 1080)
-        }
-        return bounds
+        return screenBoundsProvider()
     }
 
     private func clampToMainDisplay(_ point: CGPoint) -> CGPoint {
@@ -604,6 +628,6 @@ final class EventInjector: @unchecked Sendable {
             return
         }
         event.flags = flags
-        event.post(tap: .cghidEventTap)
+        poster.post(event, tap: .cghidEventTap)
     }
 }
