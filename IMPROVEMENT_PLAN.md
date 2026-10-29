@@ -205,3 +205,6 @@ Each feature gets its own branch and settings UI, with settings stored in a `Cod
 | 1.3  | done   | agent/1.3-authenticated-handshake | Mutual authenticated handshake, docs/protocol.md, directional HKDF keys |
 | 1.4  | done   | agent/1.4-session-crypto-replay | 56B V2 UDP datagram, ReplayWindow sliding bitmap, anti-replay tests |
 | 1.5  | done   | agent/1.5-pairing-flow | PairingPayloadV2, PairingTokenManager single-use tokens, DeviceAllowlist |
+| 1.6  | done   | agent/1.6-wire-in | Wired V2 session crypto, allowlist, single-use tokens, UI paired list |
+| 1.7  | done   | agent/1.7-file-hardening | FileReceiver hardened, path traversal blocked, user confirmation dialog |
+| 1.8  | done   | agent/1.8-parser-robustness | Parser robustness tests & 2000-iteration seeded PRNG fuzz loop |
