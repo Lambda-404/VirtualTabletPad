@@ -224,3 +224,4 @@ Each feature gets its own branch and settings UI, with settings stored in a `Cod
 | 4.4  | done   | agent/4.4-custom-actions | Action enum (key, systemAction, macro, toggleTool), Pencil gestures & F-strip bindings, tests |
 | 4.5  | done   | agent/4.5-protocol-spec | Complete wire spec in docs/protocol.md (handshake, 56B UDP datagram, 28B VPadPacket, Win/Linux notes, test vectors) |
 | 5.1  | done   | agent/5.1-readme-rewrite | README & README_ZH rewrite: cryptographic primitives, comparison table, troubleshooting, doc links |
+| 5.2  | done   | agent/5.2-release-workflow | Release workflow (.github/workflows/release.yml) with DMG packaging, optional codesign & notarization, Makefile target |

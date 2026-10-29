@@ -15,7 +15,7 @@ IPAD_PRODUCT := $(IPAD_DERIVED)/Build/Products/$(IPAD_CONFIG)-iphonesimulator/$(
 IPAD_DEVICE_DERIVED ?= /tmp/VirtualTabletPadiPadDevice
 IPAD_SIM ?=
 
-.PHONY: help generate test build run run-dev probe inspector ipad-build ipad-device-build ipad-install ipad-smoke clean
+.PHONY: help generate test build run run-dev probe inspector ipad-build ipad-device-build ipad-install ipad-smoke latency-bench package-dmg clean
 
 help:
 	@printf '%s\n' \
@@ -105,6 +105,15 @@ ipad-install: ipad-build
 ipad-smoke:
 	@test -n "$(IPAD_SIM)" || (echo "Set IPAD_SIM=<booted simulator UDID>" >&2; exit 1)
 	SIMCTL_CHILD_VPAD_AUTO_SMOKE=1 xcrun simctl launch "$(IPAD_SIM)" com.vpad.iPadClient
+
+package-dmg: build
+	mkdir -p build/dmg-staging
+	rm -rf build/dmg-staging/* build/VirtualTabletPad.dmg
+	cp -R build/$(MAC_PRODUCT) build/dmg-staging/
+	ln -s /Applications build/dmg-staging/Applications
+	hdiutil create -volname "VirtualTabletPad" -srcfolder build/dmg-staging -ov -format UDZO build/VirtualTabletPad.dmg
+	shasum -a 256 build/VirtualTabletPad.dmg > build/VirtualTabletPad.dmg.sha256
+	@echo "Packaged build/VirtualTabletPad.dmg"
 
 clean:
 	rm -rf build/VirtualTabletPad.app build/MacHost.app build/vpad_uploads

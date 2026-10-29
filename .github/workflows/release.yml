@@ -1,0 +1,136 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-release:
+    name: Build, Package & Release DMG
+    runs-on: macos-14
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Select Xcode
+        run: |
+          if [ -d "/Applications/Xcode_16.0.app" ]; then
+            sudo xcode-select -s /Applications/Xcode_16.0.app
+          elif [ -d "/Applications/Xcode_15.4.app" ]; then
+            sudo xcode-select -s /Applications/Xcode_15.4.app
+          fi
+          xcodebuild -version
+          swift --version
+
+      - name: Install Dependencies
+        run: |
+          if ! command -v xcodegen >/dev/null 2>&1; then
+            brew install xcodegen
+          fi
+          xcodegen --version
+
+      - name: Run Tests
+        run: make test
+
+      - name: Build MacHost (Release)
+        run: |
+          make build
+          mkdir -p build/export
+          cp -R /tmp/VirtualTabletPadBuild/Build/Products/Release/VirtualTabletPad.app build/export/VirtualTabletPad.app
+
+      - name: Code Signing & Notarization (Optional)
+        id: codesign
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+          NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
+          NOTARY_ISSUER_ID: ${{ secrets.NOTARY_ISSUER_ID }}
+          NOTARY_KEY: ${{ secrets.NOTARY_KEY }}
+        run: |
+          if [ -n "$MACOS_CERTIFICATE" ] && [ -n "$MACOS_CERTIFICATE_PWD" ]; then
+            echo "Developer ID certificate secret found. Importing keychain..."
+            KEYCHAIN_PATH=$RUNNER_TEMP/build.keychain
+            KEYCHAIN_PWD=$(openssl rand -hex 12)
+            security create-keychain -p "$KEYCHAIN_PWD" "$KEYCHAIN_PATH"
+            security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+            security unlock-keychain -p "$KEYCHAIN_PWD" "$KEYCHAIN_PATH"
+
+            CERT_PATH=$RUNNER_TEMP/certificate.p12
+            echo "$MACOS_CERTIFICATE" | base64 --decode > "$CERT_PATH"
+            security import "$CERT_PATH" -P "$MACOS_CERTIFICATE_PWD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+            security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PWD" "$KEYCHAIN_PATH"
+            security list-keychain -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | tr -d '"')
+
+            IDENTITY=$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | head -1 | awk -F '"' '{print $2}')
+            echo "Signing with identity: $IDENTITY"
+            codesign --force --options runtime --deep --sign "$IDENTITY" --keychain "$KEYCHAIN_PATH" build/export/VirtualTabletPad.app
+            echo "SIGNED=true" >> $GITHUB_OUTPUT
+          else
+            echo "::notice ::No MACOS_CERTIFICATE secrets found. Skipping Developer ID codesigning. Producing unsigned build."
+            echo "SIGNED=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Package DMG
+        run: |
+          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          DMG_NAME="VirtualTabletPad-${TAG_NAME}.dmg"
+          STAGING_DIR="build/dmg-staging"
+          rm -rf "$STAGING_DIR" build/*.dmg
+          mkdir -p "$STAGING_DIR"
+
+          cp -R build/export/VirtualTabletPad.app "$STAGING_DIR/"
+          ln -s /Applications "$STAGING_DIR/Applications"
+
+          echo "Creating disk image: $DMG_NAME"
+          hdiutil create -volname "VirtualTabletPad" \
+            -srcfolder "$STAGING_DIR" \
+            -ov -format UDZO \
+            "build/$DMG_NAME"
+
+          cd build
+          shasum -a 256 "$DMG_NAME" > "${DMG_NAME}.sha256"
+          cat "${DMG_NAME}.sha256"
+
+      - name: Notarize DMG (Optional)
+        if: steps.codesign.outputs.SIGNED == 'true' && env.NOTARY_KEY != ''
+        env:
+          NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
+          NOTARY_ISSUER_ID: ${{ secrets.NOTARY_ISSUER_ID }}
+          NOTARY_KEY: ${{ secrets.NOTARY_KEY }}
+        run: |
+          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          DMG_PATH="build/VirtualTabletPad-${TAG_NAME}.dmg"
+          KEY_PATH=$RUNNER_TEMP/notary_key.p8
+          echo "$NOTARY_KEY" | base64 --decode > "$KEY_PATH"
+
+          echo "Submitting DMG to Apple notarytool..."
+          xcrun notarytool submit "$DMG_PATH" \
+            --key "$KEY_PATH" \
+            --key-id "$NOTARY_KEY_ID" \
+            --issuer "$NOTARY_ISSUER_ID" \
+            --wait
+
+          echo "Stapling notarization ticket to DMG..."
+          xcrun stapler staple "$DMG_PATH"
+          echo "Notarization and stapling complete!"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "VirtualTabletPad ${{ github.ref_name }}"
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            build/VirtualTabletPad-*.dmg
+            build/VirtualTabletPad-*.dmg.sha256
